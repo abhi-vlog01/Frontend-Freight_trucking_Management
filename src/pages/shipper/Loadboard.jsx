@@ -645,23 +645,22 @@ const LoadBoard = () => {
           }
         }
         
-        // Still fetch from API to ensure synchronization
-        try {
-          const token = localStorage.getItem('token');
-          const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.data.success && response.data.data?.internalNegotiation) {
-            setNegotiationHistory(response.data.data);
-            setNegotiationHistoryLoading(false); // Ensure loading is off
-            console.log('✅ Negotiation history synced with server');
-          }
-        } catch (err) {
-          console.error('❌ Error refreshing negotiation history:', err);
-        }
+        // Still fetch from API to ensure synchronization (API commented out - was returning 403)
+        // try {
+        //   const token = localStorage.getItem('token');
+        //   const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
+        //     headers: {
+        //       Authorization: `Bearer ${token}`
+        //     }
+        //   });
+        //   if (response.data.success && response.data.data?.internalNegotiation) {
+        //     setNegotiationHistory(response.data.data);
+        //     setNegotiationHistoryLoading(false);
+        //     console.log('✅ Negotiation history synced with server');
+        //   }
+        // } catch (err) {
+        //   console.error('❌ Error refreshing negotiation history:', err);
+        // }
       }
       
       // Also refresh bids if bids modal is open for the same load
@@ -721,33 +720,27 @@ const LoadBoard = () => {
     if (negotiationHistoryModalOpen && viewBidId) {
       console.log('🔄 Starting silent polling for negotiation history...');
       
-      intervalId = setInterval(async () => {
-        try {
-          const token = localStorage.getItem('token');
-          // Silent fetch - do not trigger loading state
-          const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (response.data.success && response.data.data?.internalNegotiation) {
-             setNegotiationHistory(prev => {
-                const newHistory = response.data.data.internalNegotiation.history || [];
-                const oldHistory = prev?.internalNegotiation?.history || [];
-                
-                // Only update if there's a change in message count or content
-                // This prevents unnecessary re-renders
-                if (JSON.stringify(newHistory) !== JSON.stringify(oldHistory)) {
-                   console.log('📩 Polling found new messages! Updating UI...');
-                   return response.data.data;
-                }
-                return prev;
-             });
-          }
-        } catch (error) {
-          // Silent catch - don't disturb user
-          console.error('Silent polling error:', error);
-        }
-      }, 3000); // Poll every 3 seconds
+      // internal-negotiation-thread API commented out - was returning 403
+      // intervalId = setInterval(async () => {
+      //   try {
+      //     const token = localStorage.getItem('token');
+      //     const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
+      //       headers: { Authorization: `Bearer ${token}` }
+      //     });
+      //     if (response.data.success && response.data.data?.internalNegotiation) {
+      //        setNegotiationHistory(prev => {
+      //           const newHistory = response.data.data.internalNegotiation.history || [];
+      //           const oldHistory = prev?.internalNegotiation?.history || [];
+      //           if (JSON.stringify(newHistory) !== JSON.stringify(oldHistory)) {
+      //              return response.data.data;
+      //           }
+      //           return prev;
+      //        });
+      //     }
+      //   } catch (error) {
+      //     console.error('Silent polling error:', error);
+      //   }
+      // }, 3000);
     }
     
     return () => {
@@ -1482,23 +1475,20 @@ const LoadBoard = () => {
         });
         setNegotiationErrors({});
 
-        // Refresh negotiation history if modal is open
-        if (negotiationHistoryModalOpen && viewBidId) {
-          try {
-            const token = localStorage.getItem('token');
-            const historyResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            });
-
-            if (historyResponse.data.success && historyResponse.data.data?.internalNegotiation) {
-              setNegotiationHistory(historyResponse.data.data);
-            }
-          } catch (err) {
-            console.error('Error refreshing negotiation history:', err);
-          }
-        }
+        // Refresh negotiation history if modal is open (API commented out - was returning 403)
+        // if (negotiationHistoryModalOpen && viewBidId) {
+        //   try {
+        //     const token = localStorage.getItem('token');
+        //     const historyResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${viewBidId}/internal-negotiation-thread`, {
+        //       headers: { Authorization: `Bearer ${token}` }
+        //     });
+        //     if (historyResponse.data.success && historyResponse.data.data?.internalNegotiation) {
+        //       setNegotiationHistory(historyResponse.data.data);
+        //     }
+        //   } catch (err) {
+        //     console.error('Error refreshing negotiation history:', err);
+        //   }
+        // }
 
         // Close negotiation modal if open
         if (negotiationModalOpen) {
@@ -1524,25 +1514,23 @@ const LoadBoard = () => {
     setNegotiationHistoryError(null);
     setNegotiationHistory(null);
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bid._id || bid.bidId}/internal-negotiation-thread`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.data.success && response.data.data?.internalNegotiation) {
-        setNegotiationHistory(response.data.data);
-      } else {
-        throw new Error('Failed to fetch negotiation history');
-      }
-    } catch (err) {
-      console.error('Error fetching negotiation history:', err);
-      setNegotiationHistoryError(err.response?.data?.message || 'Failed to load negotiation history');
-    } finally {
-      setNegotiationHistoryLoading(false);
-    }
+    // internal-negotiation-thread API commented out - was returning 403
+    // try {
+    //   const token = localStorage.getItem('token');
+    //   const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bid._id || bid.bidId}/internal-negotiation-thread`, {
+    //     headers: { Authorization: `Bearer ${token}` }
+    //   });
+    //   if (response.data.success && response.data.data?.internalNegotiation) {
+    //     setNegotiationHistory(response.data.data);
+    //   } else {
+    //     throw new Error('Failed to fetch negotiation history');
+    //   }
+    // } catch (err) {
+    //   console.error('Error fetching negotiation history:', err);
+    //   setNegotiationHistoryError(err.response?.data?.message || 'Failed to load negotiation history');
+    // } finally {
+    setNegotiationHistoryLoading(false);
+    // }
   };
 
   const handleCloseNegotiationHistoryModal = () => {
