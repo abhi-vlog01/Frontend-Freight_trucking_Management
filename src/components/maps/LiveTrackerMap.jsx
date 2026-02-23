@@ -277,13 +277,15 @@ const LiveTrackerMap = ({
     const hasValidDest = truck.destLat && truck.destLng && 
                          truck.destLat !== 0 && truck.destLng !== 0;
 
-    if (routeData && routeData.path && routeData.path.length > 0) {
-      // Convert path format from [lat, lng] to {lat, lng}
+    // Use road path: either from routeData (OSRM) or fetch via Google Directions when missing/straight-line
+    const useRoadPathFromRoute = routeData?.path?.length > 2;
+    const needDirections = hasValidOrigin && hasValidDest && !useRoadPathFromRoute;
+
+    if (useRoadPathFromRoute) {
       const path = routeData.path.map(point => ({
         lat: point[0],
         lng: point[1]
       }));
-
       const polyline = new window.google.maps.Polyline({
         path,
         geodesic: true,
@@ -291,45 +293,66 @@ const LiveTrackerMap = ({
         strokeOpacity: 0.7,
         strokeWeight: 5
       });
-
-      polyline.setMap(map);
-      polylinesRef.current.push(polyline);
-    } else if (hasValidOrigin && hasValidDest) {
-      // Fallback: straight line
-      const polyline = new window.google.maps.Polyline({
-        path: [
-          { lat: truck.originLat, lng: truck.originLng },
-          { lat: truck.destLat, lng: truck.destLng }
-        ],
-        geodesic: true,
-        strokeColor: '#ff9800',
-        strokeOpacity: 0.6,
-        strokeWeight: 4,
-        icons: [{
-          icon: {
-            path: 'M 0,-1 0,1',
-            strokeOpacity: 1,
-            scale: 4
-          },
-          offset: '0',
-          repeat: '20px'
-        }]
-      });
-
       polyline.setMap(map);
       polylinesRef.current.push(polyline);
     }
 
+    if (needDirections) {
+      // Fetch actual road route via Google Directions API (no straight line)
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: { lat: truck.originLat, lng: truck.originLng },
+          destination: { lat: truck.destLat, lng: truck.destLng },
+          travelMode: window.google.maps.TravelMode.DRIVING
+        },
+        (result, status) => {
+          if (status !== window.google.maps.DirectionsStatus.OK || !result?.routes?.[0]) return;
+          const path = [];
+          result.routes[0].legs.forEach(leg => {
+            leg.steps.forEach((step, i) => {
+              path.push({ lat: step.start_location.lat(), lng: step.start_location.lng() });
+              if (i === leg.steps.length - 1) {
+                path.push({ lat: step.end_location.lat(), lng: step.end_location.lng() });
+              }
+            });
+          });
+          if (path.length < 2) return;
+          const roadPolyline = new window.google.maps.Polyline({
+            path,
+            geodesic: true,
+            strokeColor: '#1976d2',
+            strokeOpacity: 0.7,
+            strokeWeight: 5
+          });
+          roadPolyline.setMap(map);
+          polylinesRef.current.push(roadPolyline);
+          if (mapView === 'route') {
+            const bounds = new window.google.maps.LatLngBounds();
+            path.forEach(p => bounds.extend(p));
+            map.fitBounds(bounds);
+          }
+        }
+      );
+    }
+
     // Fit bounds to show all markers and route
-    if (mapView === "route" && routeData && routeData.path && routeData.path.length > 0) {
+    if (mapView === "route" && routeData?.path?.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
       routeData.path.forEach(point => {
         bounds.extend({ lat: point[0], lng: point[1] });
       });
       map.fitBounds(bounds);
     } else if (markerLat && markerLng) {
-      map.setCenter({ lat: markerLat, lng: markerLng });
-      map.setZoom(10);
+      if (needDirections && hasValidOrigin && hasValidDest) {
+        const bounds = new window.google.maps.LatLngBounds();
+        bounds.extend({ lat: truck.originLat, lng: truck.originLng });
+        bounds.extend({ lat: truck.destLat, lng: truck.destLng });
+        map.fitBounds(bounds);
+      } else {
+        map.setCenter({ lat: markerLat, lng: markerLng });
+        map.setZoom(10);
+      }
     }
   }, [selectedShipment, expandedId, routePaths, mapView, helpLoading, onHelpClick, showTraffic]);
 
