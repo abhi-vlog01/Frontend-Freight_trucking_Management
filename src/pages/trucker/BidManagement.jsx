@@ -146,17 +146,17 @@ const Dashboard = () => {
       }
       setSelectedBidDetails(specificBid);
 
-      // Fetch Negotiation History (API commented out - was returning 403)
-      // try {
-      //   const negotiationResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-      //     headers: { Authorization: `Bearer ${token}` }
-      //   });
-      //   if (negotiationResponse.data.success && negotiationResponse.data.data?.internalNegotiation) {
-      //     setNegotiationHistory(negotiationResponse.data.data);
-      //   }
-      // } catch (err) {
-      //   console.error('Error fetching negotiation history:', err);
-      // }
+      // Fetch Negotiation History
+      try {
+        const negotiationResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (negotiationResponse.data.success && negotiationResponse.data.data?.internalNegotiation) {
+          setNegotiationHistory(negotiationResponse.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching negotiation history:', err);
+      }
     } catch (err) {
       console.error('Error fetching bid details:', err);
       setSelectedBidDetails(bid); // Fallback to the bid data we already have
@@ -448,13 +448,13 @@ const Dashboard = () => {
         alertify.success('Message sent');
 
         setNegotiationMessage('');
-        // Refresh history immediately (API commented out - was returning 403)
-        // const historyResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-        //   headers: { Authorization: `Bearer ${token}` }
-        // });
-        // if (historyResponse.data.success && historyResponse.data.data?.internalNegotiation) {
-        //   setNegotiationHistory(historyResponse.data.data);
-        // }
+        // Refresh history immediately
+        const historyResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (historyResponse.data.success && historyResponse.data.data?.internalNegotiation) {
+          setNegotiationHistory(historyResponse.data.data);
+        }
       }
     } catch (err) {
       console.error('Error sending message:', err);
@@ -464,35 +464,40 @@ const Dashboard = () => {
     }
   };
 
-  // Polling for negotiation history updates (internal-negotiation-thread API commented out - was returning 403)
-  // useEffect(() => {
-  //   let interval;
-  //   if (viewDetailsModalOpen && selectedBidDetails) {
-  //     interval = setInterval(async () => {
-  //       try {
-  //         const token = localStorage.getItem('token');
-  //         const bidId = selectedBidDetails.bidId || selectedBidDetails._id;
-  //         const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-  //           headers: { Authorization: `Bearer ${token}` }
-  //         });
+  // Polling for negotiation history updates
+  useEffect(() => {
+    let interval;
+    if (viewDetailsModalOpen && selectedBidDetails) {
+      interval = setInterval(async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const bidId = selectedBidDetails.bidId || selectedBidDetails._id;
+          const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
 
-  //         if (response.data.success && response.data.data?.internalNegotiation) {
-  //           setNegotiationHistory(prev => {
-  //             const newHistory = response.data.data.internalNegotiation.history || [];
-  //             const prevHistory = prev?.internalNegotiation?.history || [];
-  //             if (newHistory.length > prevHistory.length) {
-  //               return response.data.data;
-  //             }
-  //             return prev;
-  //           });
-  //         }
-  //       } catch (err) {
-  //         console.error('Error polling negotiation history:', err);
-  //       }
-  //     }, 3000);
-  //   }
-  //   return () => clearInterval(interval);
-  // }, [viewDetailsModalOpen, selectedBidDetails, addNotification]);
+          if (response.data.success && response.data.data?.internalNegotiation) {
+            setNegotiationHistory(prev => {
+              const newHistory = response.data.data.internalNegotiation.history || [];
+              const prevHistory = prev?.internalNegotiation?.history || [];
+              
+              if (newHistory.length > prevHistory.length) {
+                // New messages found
+                const newMessages = newHistory.slice(prevHistory.length);
+                // Note: Notification is now handled globally in NegotiationContext
+                // We just return the new data to update the UI
+                return response.data.data;
+              }
+              return prev;
+            });
+          }
+        } catch (err) {
+          console.error('Error polling negotiation history:', err);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [viewDetailsModalOpen, selectedBidDetails, addNotification]);
 
   return (
     <Box sx={{ p: 3 }}>

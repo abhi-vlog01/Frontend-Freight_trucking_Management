@@ -171,21 +171,22 @@ export const NegotiationProvider = ({ children }) => {
         if (response.data && Array.isArray(response.data.acceptedBids)) {
           const bids = response.data.acceptedBids;
           
-          // For each bid, check negotiation thread (internal-negotiation-thread API commented out - was returning 403)
-          // for (const bid of bids) {
-          //   try {
-          //     const bidId = bid.bidId || bid._id;
-          //     const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-          //       headers: { Authorization: `Bearer ${token}` }
-          //     });
-          //     if (threadResponse.data.success && threadResponse.data.data?.internalNegotiation?.history) {
-          //       const history = threadResponse.data.data.internalNegotiation.history;
-          //       processHistory(history, bid, 'shipper');
-          //     }
-          //   } catch (err) {
-          //     console.error('NegotiationPolling: Error fetching thread for bid', bid, err);
-          //   }
-          // }
+          // For each bid, check negotiation thread
+          for (const bid of bids) {
+            try {
+              const bidId = bid.bidId || bid._id;
+              const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+
+              if (threadResponse.data.success && threadResponse.data.data?.internalNegotiation?.history) {
+                const history = threadResponse.data.data.internalNegotiation.history;
+                processHistory(history, bid, 'shipper');
+              }
+            } catch (err) {
+              console.error('NegotiationPolling: Error fetching thread for bid', bid, err);
+            }
+          }
         }
       } else if (user.type === 'shipper') {
            // Shipper Logic: Poll active loads and their bids
@@ -214,19 +215,22 @@ export const NegotiationProvider = ({ children }) => {
                  const bids = bidsRes.data.bids || [];
                  console.log(`NegotiationPolling: Bids for load ${load._id}`, bids.length);
                  
-                 // Iterate bids (internal-negotiation-thread API commented out - was returning 403)
-                 // for (const bid of bids) {
-                 //   try {
-                 //      const bidId = bid._id;
-                 //      const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-                 //        headers: { Authorization: `Bearer ${token}` }
-                 //      });
-                 //      if (threadResponse.data.success && threadResponse.data.data?.internalNegotiation?.history) {
-                 //        const history = threadResponse.data.data.internalNegotiation.history;
-                 //        processHistory(history, bid, 'trucker');
-                 //      }
-                 //   } catch (err) {}
-                 // }
+                 // Iterate bids
+                 for (const bid of bids) {
+                   try {
+                      const bidId = bid._id;
+                      const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                      });
+
+                      if (threadResponse.data.success && threadResponse.data.data?.internalNegotiation?.history) {
+                        const history = threadResponse.data.data.internalNegotiation.history;
+                        processHistory(history, bid, 'trucker'); // Trucker sends messages to Shipper
+                      }
+                   } catch (err) {
+                     // Silent fail for individual bid
+                   }
+                 }
                } catch (err) {
                  // Silent fail for individual load
                }

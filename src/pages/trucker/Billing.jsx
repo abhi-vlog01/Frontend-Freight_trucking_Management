@@ -47,7 +47,8 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import axios from 'axios';
 import { useThemeConfig } from '../../context/ThemeContext';
-import { BASE_API_URL } from '../../apiConfig';
+
+const BASE_API_URL = 'https://vpl-liveproject-1.onrender.com';
 
 const Dashboard = () => {
   const [page, setPage] = useState(0);

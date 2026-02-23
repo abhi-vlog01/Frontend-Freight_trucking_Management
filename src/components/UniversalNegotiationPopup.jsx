@@ -21,22 +21,22 @@ const UniversalNegotiationPopup = () => {
   useEffect(() => {
     if (!isOpen || !negotiationData) return;
     
-    // internal-negotiation-thread API commented out - was returning 403
-    // const fetchHistory = async () => {
-    //     try {
-    //         const token = localStorage.getItem('token');
-    //         const bidId = negotiationData.bidId || negotiationData._id;
-    //         const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-    //             headers: { Authorization: `Bearer ${token}` }
-    //         });
-    //         if (response.data.success && response.data.data?.internalNegotiation) {
-    //             setHistory(response.data.data.internalNegotiation.history || []);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching negotiation history:', error);
-    //     }
-    // };
-    // fetchHistory();
+    const fetchHistory = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const bidId = negotiationData.bidId || negotiationData._id;
+            const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data.success && response.data.data?.internalNegotiation) {
+                setHistory(response.data.data.internalNegotiation.history || []);
+            }
+        } catch (error) {
+            console.error('Error fetching negotiation history:', error);
+        }
+    };
+    
+    fetchHistory();
     // Socket setup for real-time updates
     if (socket && negotiationData) {
         const bidId = negotiationData.bidId || negotiationData._id;
@@ -92,13 +92,13 @@ const UniversalNegotiationPopup = () => {
 
           if (response.data.success) {
               setMessage('');
-              // Immediate refresh (internal-negotiation-thread API commented out - was returning 403)
-              // const histRes = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-              //     headers: { Authorization: `Bearer ${token}` }
-              // });
-              // if (histRes.data.success && histRes.data.data?.internalNegotiation) {
-              //     setHistory(histRes.data.data.internalNegotiation.history);
-              // }
+              // Immediate refresh
+              const histRes = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
+              if (histRes.data.success && histRes.data.data?.internalNegotiation) {
+                  setHistory(histRes.data.data.internalNegotiation.history);
+              }
               alertify.success('Message sent');
           }
       } catch (error) {

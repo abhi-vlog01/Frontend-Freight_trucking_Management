@@ -34,7 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import PageLoader from "../../components/PageLoader";
 import LiveTrackerMap from "../../components/maps/LiveTrackerMap";
-import { GOOGLE_MAPS_API_KEY, BASE_API_URL } from "../../apiConfig";
+import { GOOGLE_MAPS_API_KEY } from "../../apiConfig";
 
 // Add CSS for spinner animation
 const customStyles = `
@@ -148,8 +148,8 @@ export default function LiveTracker() {
     try {
       // Make authenticated request to help API based on user type
       const helpEndpoint = userType === 'trucker' 
-        ? `${BASE_API_URL}/api/v1/load/trucker/load/${truck.id}/help-auto`
-        : `${BASE_API_URL}/api/v1/load/shipper/load/${truck.id}/help-auto`;
+        ? `https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/load/${truck.id}/help-auto`
+        : `https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/load/${truck.id}/help-auto`;
       
       const response = await axios.get(helpEndpoint, {
         headers: {
@@ -294,7 +294,7 @@ export default function LiveTracker() {
     try {
       let res;
       if (searchTerm.trim()) {
-        res = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/${searchTerm.toUpperCase()}`);
+        res = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${searchTerm.toUpperCase()}`);
         console.log('API Response for single shipment:', res.data);
         
         // Handle different response structures
@@ -316,7 +316,7 @@ export default function LiveTracker() {
           // Try to get tracking data separately if shipment number is available
           if (loadData.loadReference?.shipmentNumber) {
             try {
-              const trackingRes = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/${loadData.loadReference.shipmentNumber}`);
+              const trackingRes = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${loadData.loadReference.shipmentNumber}`);
               if (trackingRes.data?.tracking) {
                 trackingData = trackingRes.data.tracking;
                 console.log('✅ Found separate tracking data:', trackingData);
@@ -521,8 +521,8 @@ export default function LiveTracker() {
         // Default to shipper if userType is not set
         const currentUserType = userType || 'shipper';
         const apiEndpoint = currentUserType === 'trucker' 
-          ? `${BASE_API_URL}/api/v1/load/trucker/in-transit-loads-with-location`
-          : `${BASE_API_URL}/api/v1/load/shipper/in-transit-loads-with-location`;
+          ? 'https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/in-transit-loads-with-location'
+          : 'https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/in-transit-loads-with-location';
         
         console.log(`Using API endpoint for ${currentUserType}:`, apiEndpoint);
         
@@ -636,10 +636,8 @@ export default function LiveTracker() {
           });
           
           setConsignments(shipments);
-          // Hide loader as soon as list data is in (API is fast ~110ms); routes load in background
-          setLoading(false);
-
-          // Fetch optimized routes for all loads in background (OSRM can take longer per load)
+          
+          // Fetch optimized routes for all loads
           const newRoutePaths = {};
           console.log('Starting to fetch routes for', loads.length, 'loads');
           
@@ -730,7 +728,7 @@ export default function LiveTracker() {
           // Fallback to old API if new API doesn't work
           console.log('Trying fallback API...');
           try {
-            const fallbackRes = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/`, {
+            const fallbackRes = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/`, {
               headers: headers
             });
             console.log('Fallback API response:', fallbackRes.data);
@@ -781,8 +779,8 @@ export default function LiveTracker() {
             try {
               const currentUserType = userType || 'shipper';
               const altEndpoint = currentUserType === 'trucker' 
-                ? `${BASE_API_URL}/api/v1/load/trucker/loads`
-                : `${BASE_API_URL}/api/v1/load/shipper/loads`;
+                ? 'https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/loads'
+                : 'https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/loads';
               
               const altRes = await axios.get(altEndpoint, {
                 headers: headers

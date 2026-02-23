@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { BASE_API_URL } from '../../apiConfig';
 
 // Fix for Leaflet default icons
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -85,7 +84,7 @@ const LoadLocationMap = ({ loadDetails }) => {
   // Function to fetch tracking data
   const fetchTrackingData = async (shipmentNumber) => {
     try {
-      const response = await fetch(`${BASE_API_URL}/api/v1/load/shipment/${shipmentNumber}`);
+      const response = await fetch(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${shipmentNumber}`);
       const data = await response.json();
       
       if (data.success && data.tracking) {
