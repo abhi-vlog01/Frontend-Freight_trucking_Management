@@ -2692,17 +2692,14 @@ const handleEditLoad = (load) => {
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: 'column',
+          alignItems: 'stretch',
           mb: 3,
-          flexWrap: 'wrap',
           gap: 2,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700}>
-            Load Board
-          </Typography>
+          {/* <Typography variant="h5" fontWeight={700}>Load Board</Typography> */}
           {isFiltered && (
             <Chip
               label={`Filtered: ${filteredData.length} result${filteredData.length !== 1 ? 's' : ''}`}
@@ -2713,60 +2710,68 @@ const handleEditLoad = (load) => {
             />
           )}
         </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="outlined"
-            onClick={exportToCSV}
-            sx={{
-              borderRadius: 2,
-              fontSize: '0.75rem',
-              px: 2,
-              py: 0.8,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: '#1976d2',
-              borderColor: '#1976d2',
-              '&:hover': {
-                borderColor: '#0d47a1',
-                color: '#0d47a1',
-              },
-            }}
-
-          >
-            Export CSV
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleOpenModal}
-            sx={{ borderRadius: 2, textTransform: 'none' }}
-          >
-            Add Load
-          </Button>
-        </Stack>
+        <Box sx={{ width: '100%' }}>
+          <div className="rounded-lg border border-gray-200 bg-white p-2">
+            <div className="flex items-center gap-2">
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search color="gray" />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      borderRadius: 2,
+                      fontSize: '1.2rem',
+                      px: 1,
+                      backgroundColor: '#fff',
+                    },
+                  }}
+                />
+              </Box>
+              <Button
+                variant="outlined"
+                onClick={exportToCSV}
+                sx={{
+                  borderRadius: 2,
+                  fontSize: '1rem',
+                  px: 2,
+                  py: 0.8,
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  color: '#1976d2',
+                  borderColor: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: 'primary.main',
+      borderColor: 'primary.main',
+      color: '#fff',
+                  },
+                }}
+              >
+                Export CSV
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={handleOpenModal}
+                sx={{ borderRadius: 2, textTransform: 'none',  fontSize: '1.1rem', color:'white' }}
+              >
+                Add Load
+              </Button>
+            </div>
+          </div>
+        </Box>
       </Box>
 
       {/* Beautiful Gradient Tabs Section */}
-      <Paper elevation={2} sx={{ borderRadius: 3, mb: 3, overflow: 'hidden' }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, mb: 3, overflow: 'hidden' }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -2791,13 +2796,13 @@ const handleEditLoad = (load) => {
                 background: 'linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)',
                 color: '#212529',
                 transform: 'translateY(-2px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: 'none',
               },
               '&.Mui-selected': {
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 color: '#ffffff',
                 fontWeight: 700,
-                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+                boxShadow: 'none',
                 transform: 'translateY(-2px)',
               },
             },
@@ -2811,7 +2816,7 @@ const handleEditLoad = (load) => {
                   height: 10,
                   borderRadius: '50%',
                   background: activeTab === 0 ? '#ffffff' : '#ffc107',
-                  boxShadow: activeTab === 0 ? '0 0 10px rgba(255,255,255,0.6)' : '0 0 10px rgba(255,193,7,0.6)',
+                  boxShadow: 'none',
                   border: '2px solid rgba(255,255,255,0.3)'
                 }} />
                 <Typography variant="body2" sx={{ fontWeight: 'inherit' }}>
@@ -2828,7 +2833,7 @@ const handleEditLoad = (load) => {
                   height: 10,
                   borderRadius: '50%',
                   background: activeTab === 1 ? '#ffffff' : '#17a2b8',
-                  boxShadow: activeTab === 1 ? '0 0 10px rgba(255,255,255,0.6)' : '0 0 10px rgba(23,162,184,0.6)',
+                  boxShadow: 'none',
                   border: '2px solid rgba(255,255,255,0.3)'
                 }} />
                 <Typography variant="body2" sx={{ fontWeight: 'inherit' }}>
@@ -2845,7 +2850,7 @@ const handleEditLoad = (load) => {
                   height: 10,
                   borderRadius: '50%',
                   background: activeTab === 2 ? '#ffffff' : '#28a745',
-                  boxShadow: activeTab === 2 ? '0 0 10px rgba(255,255,255,0.6)' : '0 0 10px rgba(40,167,69,0.6)',
+                  boxShadow: 'none',
                   border: '2px solid rgba(255,255,255,0.3)'
                 }} />
                 <Typography variant="body2" sx={{ fontWeight: 'inherit' }}>
@@ -2874,7 +2879,7 @@ const handleEditLoad = (load) => {
         </Tabs>
       </Paper>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: (themeConfig?.content?.bgImage ? 'rgba(255,255,255,0.94)' : (themeConfig?.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: (themeConfig?.content?.bgImage ? 'rgba(255,255,255,0.94)' : (themeConfig?.table?.bg || '#fff')), position: 'relative', boxShadow: 'none', border: '1px solid rgba(0,0,0,0.06)' }}>
         {themeConfig?.table?.bgImage && (
           <Box sx={{
             position: 'absolute',
@@ -2888,188 +2893,339 @@ const handleEditLoad = (load) => {
             zIndex: 0,
           }} />
         )}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: (themeConfig.table?.headerBg || '#f0f4f8') }}>
-              <TableCell sx={{ fontWeight: 600 }}>Load ID</TableCell>
-              
-              {/* Hide Shipment No column for Pending Approval (0) and Bidding (1) tabs */}
-              {activeTab !== 0 && activeTab !== 1 && (
-                <TableCell sx={{ fontWeight: 600 }}>Shipment No</TableCell>
-              )}
-              <TableCell sx={{ fontWeight: 600 }}>Weight</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Pick-Up</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Drop</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Vehicle</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Created Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  {activeTab !== 0 && activeTab !== 1 && (
-                    <TableCell><Skeleton variant="text" width={120} /></TableCell>
+       <Box sx={{ position: 'relative', zIndex: 1, px: 2, py: 4 }}>
+  <div className="rounded-lg bg-white overflow-x-auto">
+    <table className="w-full text-sm border-collapse">
+      <thead>
+        <tr className="rounded-lg border border-gray-200 bg-gray-50 text-[0.70rem] uppercase tracking-wide text-slate-500">
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Load ID</th>
+          {!(activeTab === 0 || activeTab === 1) && (
+            <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Shipment No</th>
+          )}
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Weight</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Pick-Up</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Drop</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Vehicle</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Status</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Created Date</th>
+          <th className="py-4 px-3 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {loading ? (
+          Array.from({ length: 5 }).map((_, index) => (
+            <tr key={index} className="border-b border-gray-100">
+              <td className="py-2 px-3"><Skeleton variant="text" width={80} /></td>
+              {!(activeTab === 0 || activeTab === 1) && <td className="py-2 px-3"><Skeleton variant="text" width={120} /></td>}
+              <td className="py-2 px-3"><Skeleton variant="text" width={60} /></td>
+              <td className="py-2 px-3"><Skeleton variant="text" width={140} /></td>
+              <td className="py-2 px-3"><Skeleton variant="text" width={140} /></td>
+              <td className="py-2 px-3"><Skeleton variant="text" width={80} /></td>
+              <td className="py-2 px-3"><Skeleton variant="rectangular" width={70} height={22} sx={{ borderRadius: 12 }} /></td>
+              <td className="py-2 px-3"><Skeleton variant="text" width={100} /></td>
+              <td className="py-2 px-3">
+                <Stack direction="row" spacing={0.5}>
+                  <Skeleton variant="rectangular" width={50} height={26} sx={{ borderRadius: 4 }} />
+                  <Skeleton variant="rectangular" width={50} height={26} sx={{ borderRadius: 4 }} />
+                </Stack>
+              </td>
+            </tr>
+          ))
+        ) : filteredData.length === 0 ? (
+          <tr>
+            <td
+              colSpan={activeTab === 0 || activeTab === 1 ? 8 : 9}
+              className="py-6 text-center text-slate-600"
+            >
+              No data found
+            </td>
+          </tr>
+        ) : (
+          filteredData
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((load) => {
+              const isSearchedItem =
+                isFiltered &&
+                location.state?.selectedShipment &&
+                (load.shipmentNumber === location.state.selectedShipment.shipmentNumber ||
+                  load._id === location.state.selectedShipment.id ||
+                  load.id === location.state.selectedShipment.id);
+
+              return (
+                <tr
+                  key={load._id}
+                  className={`border border-gray-200 transition-all hover:bg-gray-50 ${
+                    isSearchedItem ? 'ring-2 ring-inset ring-blue-400/30 bg-blue-50/30' : ''
+                  }`}
+                >
+                  <td className="py-6 px-5 font-medium text-base text-gray-700 whitespace-nowrap">
+                    {load._id ? `L-${load._id.slice(-4)}` : '-'}
+                  </td>
+                  {!(activeTab === 0 || activeTab === 1) && (
+                    <td className="py-6 px-3 font-medium text-base text-gray-700 whitespace-nowrap max-w-[120px] truncate">
+                      {load.shipmentNumber}
+                    </td>
                   )}
-                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="rectangular" width={80} height={26} sx={{ borderRadius: 1 }} /></TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : filteredData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={activeTab === 0 || activeTab === 1 ? 8 : 9} align="center">No data found</TableCell>
-              </TableRow>
-            ) : (
-              filteredData
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((load, i) => {
-                  const isSearchedItem = isFiltered && location.state?.selectedShipment &&
-                    (load.shipmentNumber === location.state.selectedShipment.shipmentNumber ||
-                      load._id === location.state.selectedShipment.id ||
-                      load.id === location.state.selectedShipment.id);
+                  <td className="py-6 px-3 font-medium text-base text-gray-700 whitespace-nowrap">
+                    {load.weight !== undefined && load.weight !== null && load.weight !== ''
+                      ? `${load.weight} Kg`
+                      : '-'}
+                  </td>
+                 <td className="py-6 px-3 font-medium text-base text-gray-700">
+  <div className="relative group max-w-[100px]">
 
-                  return (
-                    <TableRow
-                      key={load._id}
-                      hover
-                      sx={{
-                        transition: '0.3s',
-                        '&:hover': { backgroundColor: '#e3f2fd' },
-                        ...(isSearchedItem && {
-                          backgroundColor: '#fff3e0',
-                          borderLeft: '4px solid #ff9800',
-                          '&:hover': { backgroundColor: '#ffe0b2' }
-                        })
-                      }}
-                    >
-                      <TableCell>{load._id ? `L-${load._id.slice(-4)}` : '-'}</TableCell>
-                      {/* Hide Shipment No cell for Pending Approval (0) and Bidding (1) tabs */}
-                      {activeTab !== 0 && activeTab !== 1 && (
-                        <TableCell>{load.shipmentNumber}</TableCell>
-                      )}
-                      <TableCell>{load.weight !== undefined && load.weight !== null && load.weight !== '' ? `${load.weight} Kg` : '-'}</TableCell>
-                      <TableCell>
-                        {load.origins && load.origins.length > 0 && load.origins[0].city ?
-                          `${load.origins[0].city}${load.origins[0].state ? `, ${load.origins[0].state}` : ''}` :
-                          '-'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        {load.destinations && load.destinations.length > 0 && load.destinations[0].city ?
-                          `${load.destinations[0].city}${load.destinations[0].state ? `, ${load.destinations[0].state}` : ''}` :
-                          '-'
-                        }
-                      </TableCell>
-                      <TableCell>{load.vehicleType || '-'}</TableCell>
-                      <TableCell>
-                        <Chip label={load.status || '-'} color={getStatusColor(load.status || '')} size="small" />
-                      </TableCell>
-                                            <TableCell>{load.createdAt ? new Date(load.createdAt).toLocaleString() : '-'}</TableCell>
+    <span className="block truncate">
+      {load.origins && load.origins.length > 0 && load.origins[0].city
+        ? `${load.origins[0].city}${
+            load.origins[0].state ? `, ${load.origins[0].state}` : ''
+          }`
+        : '-'}
+    </span>
 
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleViewBids(load._id)}
-                            disabled={['Assigned', 'In Transit', 'Delivered'].includes(load.status)}
-                            sx={{
-                              opacity: ['Assigned', 'In Transit', 'Delivered'].includes(load.status) ? 0.5 : 1,
-                              cursor: ['Assigned', 'In Transit', 'Delivered'].includes(load.status) ? 'not-allowed' : 'pointer'
-                            }}
-                          >
-                            View
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleEditLoad(load)}
-                            disabled={!['Pending', 'Approval', 'Pending Approval', 'Posted'].includes(load.status)}
-                            sx={{
-                              opacity: !['Pending', 'Approval', 'Pending Approval', 'Posted'].includes(load.status) ? 0.5 : 1,
-                              cursor: !['Pending', 'Approval', 'Pending Approval', 'Posted'].includes(load.status) ? 'not-allowed' : 'pointer'
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          {/* <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleDuplicateLoad(load)}
-                            sx={{
-                              backgroundColor: '#e3f2fd',
-                              color: '#1976d2',
-                              '&:hover': {
-                                backgroundColor: '#bbdefb'
-                              }
-                            }}
-                          >
-                            Duplicate
-                          </Button> */}
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleCmtAgentDetails(load._id)}
-                            sx={{
-                              fontSize: '0.7rem',
-                              px: 1,
-                              py: 0.5,
-                              textTransform: 'none',
-                              fontWeight: 500
-                            }}
-                          >
-                            CMT Agent Details
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleRefreshLoad(load._id)}
-                            disabled={!['Posted', 'Pending', 'Approval'].includes(load.status)}
-                            sx={{
-                              minWidth: 'auto',
-                              px: 1,
-                              opacity: !['Posted', 'Pending', 'Approval'].includes(load.status) ? 0.5 : 1,
-                              cursor: !['Posted', 'Pending', 'Approval'].includes(load.status) ? 'not-allowed' : 'pointer'
-                            }}
-                            title="Refresh Load Timestamp"
-                          >
-                            <Refresh fontSize="small" />
-                          </Button>
+    {/* Tooltip */}
+    {load.origins && load.origins.length > 0 && load.origins[0].city && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-xs px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {`${load.origins[0].city}${
+          load.origins[0].state ? `, ${load.origins[0].state}` : ''
+        }`}
+      </div>
+    )}
 
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-            )}
-          </TableBody>
-        </Table>
-        </Box>
-        <TablePagination
-          component="div"
-          count={filteredData.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-        />
+  </div>
+</td>
+                 <td className="py-6 px-3 font-medium text-base text-gray-700">
+  <div className="relative group max-w-[100px]">
+
+    <span className="block truncate">
+      {load.destinations && load.destinations.length > 0 && load.destinations[0].city
+        ? `${load.destinations[0].city}${
+            load.destinations[0].state ? `, ${load.destinations[0].state}` : ''
+          }`
+        : '-'}
+    </span>
+
+    {/* Tooltip */}
+    {load.destinations && load.destinations.length > 0 && load.destinations[0].city && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-xs px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {`${load.destinations[0].city}${
+          load.destinations[0].state ? `, ${load.destinations[0].state}` : ''
+        }`}
+      </div>
+    )}
+
+  </div>
+</td>
+                  <td className="py-6 px-3 font-medium text-base text-gray-700">
+  <div className="relative group max-w-[100px]">
+    
+    <span className="truncate block">
+      {load.vehicleType || '-'}
+    </span>
+
+    {load.vehicleType && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-xs px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {load.vehicleType}
+      </div>
+    )}
+
+  </div>
+</td>
+                  <td className="py-8 px-3 font-medium text-base text-gray-700 whitespace-nowrap">
+                    <Chip label={load.status || '-'} color={getStatusColor(load.status || '')} size="small" />
+                  </td>
+                  <td className="py-2 px-3 font-medium text-base text-gray-700 whitespace-nowrap">
+                    {load.createdAt ? new Date(load.createdAt).toLocaleString() : '-'}
+                  </td>
+                  <td className="py-6 px-3">
+  <Stack direction="row" spacing={0.5} alignItems="center">
+    <Button
+  size="small"
+  variant="outlined"
+  onClick={() => handleViewBids(load._id)}
+  disabled={['Assigned', 'In Transit', 'Delivered'].includes(load.status)}
+  sx={{
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 500,
+    px: 1.2,
+    py: 0.4,
+    minWidth: 'auto',
+    color: 'blue.700',
+    borderColor: 'blue.400',
+    '&:hover': {
+      backgroundColor: 'primary.main',
+      borderColor: 'primary.main',
+      color: '#fff',
+    },
+    '&.Mui-disabled': {
+      borderColor: 'grey.200',
+      color: 'grey.400',
+    },
+  }}
+>
+  View
+</Button>
+   <Button
+  size="small"
+  variant="outlined"
+  onClick={() => handleEditLoad(load)}
+  disabled={!['Pending', 'Approval', 'Pending Approval', 'Posted'].includes(load.status)}
+  sx={{
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 500,
+    px: 1.2,
+    py: 0.4,
+    minWidth: 'auto',
+    color: 'blue.700',
+    borderColor: 'blue.400',
+    '&:hover': {
+      backgroundColor: 'primary.main',
+      borderColor: 'primary.main',
+      color: '#fff',
+    },
+    '&.Mui-disabled': {
+      borderColor: 'grey.200',
+      color: 'grey.400',
+    },
+  }}
+>
+  Edit
+</Button>
+
+<Button
+  size="small"
+  variant="outlined"
+  onClick={() => handleCmtAgentDetails(load._id)}
+  sx={{
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 500,
+    px: 1,
+    py: 0.4,
+    minWidth: 'auto',
+    color: 'blue.700',
+    borderColor: 'blue.400',
+    '&:hover': {
+      backgroundColor: 'primary.main',
+      borderColor: 'primary.main',
+      color: '#fff',
+    },
+    '&.Mui-disabled': {
+      borderColor: 'grey.200',
+      color: 'grey.400',
+    },
+  }}
+>
+  CMT Agent Details
+</Button>
+    {/* <Button
+      size="small"
+      variant="outlined"
+      onClick={() => handleRefreshLoad(load._id)}
+      disabled={!['Posted', 'Pending', 'Approval'].includes(load.status)}
+      title="Refresh Load Timestamp"
+      sx={{ minWidth: 'auto', px: 1, py: 1 }}
+    >
+      <Refresh sx={{ fontSize: 18 }} />
+    </Button> */}
+  </Stack>
+</td>
+                </tr>
+              );
+            })
+        )}
+      </tbody>
+    </table>
+  </div>
+</Box>
+       
       </Paper>
-
+      <div className="mt-2 rounded-lg border border-gray-200 bg-white px-4 py-3 pr-55">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-600">
+            {(() => {
+              const count = filteredData ? filteredData.length : 0;
+              const start = count === 0 ? 0 : page * rowsPerPage + 1;
+              const end = Math.min((page + 1) * rowsPerPage, count);
+              return `Showing ${start} to ${end} of ${count} loads`;
+            })()}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="text"
+              disabled={page === 0}
+              onClick={() => handleChangePage(null, page - 1)}
+              sx={{ textTransform: 'none', color: '#64748b', fontWeight: 600 }}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {
+                (() => {
+                  const count = filteredData ? filteredData.length : 0;
+                  const totalPages = Math.max(1, Math.ceil(count / rowsPerPage));
+                  const current = page + 1;
+                  const tokens = [];
+                  const pushPage = (p) => tokens.push({ type: 'page', value: p });
+                  const pushEllipsis = () => tokens.push({ type: 'ellipsis' });
+                  if (totalPages <= 7) {
+                    for (let p = 1; p <= totalPages; p++) pushPage(p);
+                  } else {
+                    pushPage(1);
+                    if (current > 4) pushEllipsis();
+                    const start = Math.max(2, current - 1);
+                    const end = Math.min(totalPages - 1, current + 1);
+                    for (let p = start; p <= end; p++) pushPage(p);
+                    if (current < totalPages - 3) pushEllipsis();
+                    pushPage(totalPages);
+                  }
+                  return tokens.map((t, idx) => {
+                    if (t.type === 'ellipsis') {
+                      return <span key={`e-${idx}`} className="px-1 text-slate-400">…</span>;
+                    }
+                    const active = t.value === current;
+                    return (
+                      <Button
+                        key={`p-${t.value}`}
+                        variant={active ? 'outlined' : 'text'}
+                        onClick={() => handleChangePage(null, t.value - 1)}
+                        sx={{
+                          minWidth: 0,
+                          px: active ? 1.5 : 1,
+                          py: 0.2,
+                          fontWeight: active ? 700 : 600,
+                          color: active ? '#0f172a' : '#64748b',
+                          borderColor: '#94a3b8',
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                        }}
+                      >
+                        {t.value}
+                      </Button>
+                    );
+                  });
+                })()
+              }
+            </div>
+            <Button
+              variant="text"
+              disabled={(page + 1) * rowsPerPage >= (filteredData ? filteredData.length : 0)}
+              onClick={() => handleChangePage(null, page + 1)}
+              sx={{ textTransform: 'none', color: '#0f172a', fontWeight: 700 }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
       {/* Modern Add Load Modal */}
       <Dialog
         open={modalOpen}
@@ -3091,7 +3247,7 @@ const handleEditLoad = (load) => {
       >
         <DialogTitle className="border-b-0 flex items-center justify-between gap-3 py-4 px-6 relative rounded-t-lg" sx={{ backgroundColor: brand, color: headerTextColor }}>
           <Box className="flex items-center gap-3 flex-1">
-            <Box className="bg-white rounded-lg w-12 h-12 flex items-center justify-center border-2 border-blue-300 shadow-sm">
+            <Box className="bg-white rounded-lg w-12 h-12 flex items-center justify-center border-2 border-blue-300">
               <LocalShipping className="text-xl text-blue-500" />
             </Box>
             <Box>
@@ -3176,7 +3332,7 @@ const handleEditLoad = (load) => {
               {loadType === 'DRAYAGE' && (
                 <>
                   {/* Location Details Section */}
-                  <Paper elevation={0} className="p-3 rounded-lg bg-white shadow-sm">
+                  <Paper elevation={0} className="p-3 rounded-lg bg-white">
                     <Box className="flex items-center gap-2 mb-3">
                       <Box className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                         <LocationOn className="text-green-600 text-2xl" />
@@ -3188,7 +3344,7 @@ const handleEditLoad = (load) => {
 
                     {/* Pick Up Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"
@@ -3346,7 +3502,7 @@ const handleEditLoad = (load) => {
 
                     {/* Loading/Unloading Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"
@@ -3504,7 +3660,7 @@ const handleEditLoad = (load) => {
 
                     {/* Return Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"
@@ -3943,7 +4099,7 @@ const handleEditLoad = (load) => {
 
 
               {/* Load Details Section */}
-              <Paper elevation={0} className="p-3 rounded-lg bg-white shadow-sm">
+              <Paper elevation={0} className="p-3 rounded-lg bg-white">
                 <Box className="flex items-center gap-2 mb-3">
                   <Box className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
                     <Business className="text-purple-600 text-2xl" />
@@ -6424,7 +6580,7 @@ const handleEditLoad = (load) => {
       >
         <DialogTitle className="border-b-0 flex items-center justify-between gap-3 py-4 px-6 relative rounded-t-lg" sx={{ background: brand, color: headerTextColor }}>
           <Box className="flex items-center gap-3 flex-1">
-            <Box className="bg-white rounded-lg w-12 h-12 flex items-center justify-center border-2 border-blue-300 shadow-sm">
+            <Box className="bg-white rounded-lg w-12 h-12 flex items-center justify-center border-2 border-blue-300">
               <LocalShipping className="text-xl text-blue-500" />
             </Box>
             <Box>
@@ -6546,7 +6702,7 @@ const handleEditLoad = (load) => {
               {editLoadType === 'DRAYAGE' && (
                 <>
                   {/* Location Details Section */}
-                  <Paper elevation={0} className="p-3 rounded-lg bg-white shadow-sm">
+                  <Paper elevation={0} className="p-3 rounded-lg bg-white">
                     <Box className="flex items-center gap-2 mb-3">
                       <Box className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                         <LocationOn className="text-green-600 text-2xl" />
@@ -6558,7 +6714,7 @@ const handleEditLoad = (load) => {
 
                     {/* Pick Up Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"
@@ -6715,7 +6871,7 @@ const handleEditLoad = (load) => {
 
                     {/* Loading/Unloading Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"
@@ -6872,7 +7028,7 @@ const handleEditLoad = (load) => {
 
                     {/* Return Location Sub-section */}
                     <Box
-                      className="mb-6 p-4 rounded-2xl shadow-sm bg-gradient-to-b from-white to-gray-50 border border-gray-200"
+                      className="mb-6 p-4 rounded-2xl bg-gradient-to-b from-white to-gray-50 border border-gray-200"
                     >
                       <Typography
                         variant="subtitle1"

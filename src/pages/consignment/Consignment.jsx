@@ -38,7 +38,7 @@ const Consignment = () => {
   const { user, userType } = useAuth();
   const { themeConfig } = useThemeConfig();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadsData, setLoadsData] = useState([]);
   const [originalLoadsData, setOriginalLoadsData] = useState([]);
@@ -525,72 +525,81 @@ const Consignment = () => {
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: 'column',
+          alignItems: 'stretch',
           mb: 3,
-          flexWrap: 'wrap',
           gap: 2,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700}>
+          {/* <Typography variant="h5" fontWeight={700}>
             Consignment
-          </Typography>
+          </Typography> */}
           {isFiltered && (
             <Chip
               label={`Filtered: ${loadsData.length} result${loadsData.length !== 1 ? 's' : ''}`}
               color="primary"
               onDelete={clearSearchFilter}
               deleteIcon={<Clear />}
-              sx={{ fontWeight: 600 }}
+              sx={{ fontWeight: 600}}
             />
           )}
         </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="outlined"
-            onClick={exportToCSV}
-            disabled={transformedData.length === 0}
-            sx={{
-              borderRadius: 2,
-              fontSize: '0.75rem',
-              px: 2,
-              py: 0.8,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: '#1976d2',
-              borderColor: '#1976d2',
-              '&:hover': {
-                borderColor: '#0d47a1',
-                color: '#0d47a1',
-              },
-            }}
-          >
-            Export CSV ({transformedData.length} loads)
-          </Button>
-        </Stack>
+        <Box sx={{ width: '100%' }}>
+          <div className="rounded-lg border border-gray-200 bg-white p-2">
+            <div className="flex items-center gap-2">
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search color="gray" />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      borderRadius: 2,
+                      fontSize: '1.2rem',
+                      px: 1,
+                      backgroundColor: '#fff',
+                    },
+                  }}
+                />
+              </Box>
+             <Button
+  variant="outlined"
+  onClick={exportToCSV}
+  disabled={transformedData.length === 0}
+  sx={{
+    borderRadius: 2,
+    fontSize: '1rem',
+    px: 2,
+    py: 0.8,
+    fontWeight: 500,
+    textTransform: 'none',
+    color: '#1976d2',
+    borderColor: '#1976d2',
+
+    '&:hover': {
+      borderColor: '#0d47a1',
+      color: '#ffffff',
+      backgroundColor: '#1976d2',   // ✅ ADDED
+    },
+  }}
+>
+  Export CSV ({transformedData.length} loads)
+</Button>
+            </div>
+          </div>
+        </Box>
       </Box>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: (themeConfig?.content?.bgImage ? 'rgba(255,255,255,0.92)' : (themeConfig?.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(2px)' }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: (themeConfig?.content?.bgImage ? 'rgba(255,255,255,0.92)' : (themeConfig?.table?.bg || '#fff')), position: 'relative', boxShadow: 'none', border: '1px solid #e5e7eb', backdropFilter: 'blur(0)' }}>
         {themeConfig?.table?.bgImage && (
           <Box sx={{
             position: 'absolute',
@@ -605,174 +614,226 @@ const Consignment = () => {
           }} />
         )}
 
-        <Table
-          sx={{
-            borderRadius: 3,
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <TableHead>
-            <TableRow
-              sx={{
-                background: 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)',
-              }}
-            >
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Load ID</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Consignment No</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Weight</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Pick Up</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Drop</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Load Type</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem', py: 1.5, borderBottom: '2px solid #e2e8f0' }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="rectangular" width={80} height={26} sx={{ borderRadius: 1 }} /></TableCell>
-                  <TableCell><Skeleton variant="rectangular" width={80} height={32} sx={{ borderRadius: 1 }} /></TableCell>
-                </TableRow>
-              ))
-            ) : filteredData && filteredData.length > 0 ? (
-              filteredData
+        <Box sx={{ px: 2, py:4 }}>
+          <div className="rounded-lg border border-gray-200 bg-white">
+            <div className="grid grid-cols-7 text-[0.75rem] uppercase tracking-wide text-slate-500">
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Load ID</div>
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm whitespace-nowrap">Consignment No</div>
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Weight</div>
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Pick Up</div>  
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Drop</div>
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Load Type</div>
+              <div className="py-4 px-6 font-semibold text-gray-700 text-sm">Action</div>
+            </div>
+          </div>
+
+          {loading ? (
+            <Box sx={{ mt: 2 }}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="mt-3 rounded-lg border border-gray-200 bg-white">
+                  <div className="grid grid-cols-7 items-center">
+                    <div className="py-4 px-6"><Skeleton variant="text" width={120} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="text" width={150} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="text" width={150} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="text" width={100} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="text" width={100} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="rectangular" width={80} height={26} sx={{ borderRadius: 1 }} /></div>
+                    <div className="py-4 px-6"><Skeleton variant="rectangular" width={80} height={32} sx={{ borderRadius: 9999 }} /></div>
+                  </div>
+                </div>
+              ))}
+            </Box>
+          ) : filteredData && filteredData.length > 0 ? (
+            <div className="mt-3 space-y-3">
+              {filteredData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, i) => {
-                const isSearchedItem = isFiltered && location.state?.selectedShipment && 
-                  (row.consignmentNo === location.state.selectedShipment.shipmentNumber ||
-                   row.loadId === location.state.selectedShipment.id);
-                
-                return (
-                  <TableRow 
-                    key={i} 
-                    hover 
-                    sx={{ 
-                      transition: 'all 0.25s ease',
-                      borderBottom: '1px solid #f1f5f9',
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                      },
-                      ...(isSearchedItem && {
-                        backgroundColor: '#fff3e0',
-                        borderLeft: '4px solid #ff9800',
-                        '&:hover': { 
-                          backgroundColor: '#ffe0b2',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        }
-                      })
-                    }}
-                  >
-                  <TableCell sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem', py: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocalShipping sx={{ fontSize: 18, color: '#64748b' }} />
-                      <Typography sx={{ fontWeight: 700 }}>{row.loadId}</Typography>
-                    </Box>
-                  </TableCell>       
-                  <TableCell sx={{ color: '#475569', py: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {row.consignmentNo}
-                    </Typography>
-                  </TableCell>                                        
-                  <TableCell sx={{ color: '#64748b', py: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {row.weight}
-                    </Typography>
-                  </TableCell>        
-                  <TableCell sx={{ color: '#475569', py: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'start', gap: 1 }}>
-                      <LocationOn sx={{ fontSize: 16, color: '#94a3b8', mt: 0.5 }} />
-                      <Typography variant="body2" sx={{ wordWrap: 'break-word' }}>
-                        {row.pickup}
-                      </Typography>
-                    </Box>
-                  </TableCell>        
-                  <TableCell sx={{ color: '#475569', py: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'start', gap: 1 }}>
-                      <LocationOn sx={{ fontSize: 16, color: '#94a3b8', mt: 0.5 }} />
-                      <Typography variant="body2" sx={{ wordWrap: 'break-word' }}>
-                        {row.drop}
-                      </Typography>
-                    </Box>
-                  </TableCell>         
-                  <TableCell sx={{ py: 2 }}>
-                    <Chip
-                      label={row.loadType}
-                      size="small"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        height: 26,
-                        backgroundColor: row.loadType === 'DRAYAGE' ? '#dbeafe' : '#e0e7ff',
-                        color: row.loadType === 'DRAYAGE' ? '#1e40af' : '#3730a3',
-                        border: row.loadType === 'DRAYAGE' ? '1px solid #bfdbfe' : '1px solid #c7d2fe',
-                      }}
-                    />
-                  </TableCell>       
-                  <TableCell sx={{ py: 2 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<Visibility />}
-                      onClick={() => handleViewDetail(row)}
-                      sx={{
-                        fontSize: '0.7rem',
-                        px: 1.5,
-                        py: 0.5,
-                        textTransform: 'none',
-                        color: '#2563eb',
-                        borderColor: '#bfdbfe',
-                        backgroundColor: '#eff6ff',
-                        fontWeight: 600,
-                        '&:hover': {
-                          backgroundColor: '#2563eb',
-                          color: '#fff',
-                          borderColor: '#2563eb',
-                        },
-                      }}
+                  const isSearchedItem = isFiltered && location.state?.selectedShipment &&
+                    (row.consignmentNo === location.state.selectedShipment.shipmentNumber ||
+                     row.loadId === location.state.selectedShipment.id);
+                  return (
+                    <div
+                      key={i}
+                      className={`rounded-lg border bg-white transition-all ${isSearchedItem ? 'border-blue-600 ring-2 ring-blue-400/30' : 'border-gray-200'}`}
                     >
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <LocalShipping sx={{ fontSize: 48, color: '#cbd5e1' }} />
-                    <Typography variant="h6" color="text.secondary" fontWeight={600}>
-                      No consignments found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {loadsData.length === 0 
-                        ? 'No consignment data available' 
-                        : 'Try adjusting your search criteria'}
-                    </Typography>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={filteredData ? filteredData.length : 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-        />
+                      <div className="grid grid-cols-7 items-center">
+                        <div className="py-4 px-6 font-semibold text-slate-900 flex items-center gap-2">
+                          {/* <LocalShipping sx={{ fontSize: 18, color: '#64748b' }} /> */}
+                          <span className="font-medium text-gray-900">{row.loadId}</span>
+                        </div>
+                        <div className="py-4 px-6 font-semibold text-slate-900">
+                          <span className="font-medium text-gray-900">{row.consignmentNo}</span>
+                        </div>
+                        <div className="py-4 px-6 text-slate-600">
+                          <span className="font-medium text-gray-900">{row.weight}</span>
+                        </div>
+                        <div className="py-4 px-6 text-slate-700">
+                          <div className="flex items-start gap-1">
+                            {/* <LocationOn sx={{ fontSize: 16, color: '#94a3b8' }} /> */}
+                            <span className="font-medium text-gray-900">{row.pickup}</span>
+                          </div>
+                        </div>
+                        <div className="py-4 px-6 text-slate-700">
+                          <div className="flex items-start gap-1">
+                            {/* <LocationOn sx={{ fontSize: 16, color: '#94a3b8' }} /> */}
+                            <span className="font-medium text-gray-900">{row.drop}</span>
+                          </div>
+                        </div>
+                        <div className="py-4 px-6">
+                          <Chip
+                            label={row.loadType}
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              height: 26,
+                              backgroundColor: row.loadType === 'DRAYAGE' ? '#dbeafe' : '#e0e7ff',
+                              color: row.loadType === 'DRAYAGE' ? '#1e40af' : '#3730a3',
+                              border: row.loadType === 'DRAYAGE' ? '1px solid #bfdbfe' : '1px solid #c7d2fe',
+                              borderRadius: 9999,
+                            }}
+                          />
+                        </div>
+                        <div className="py-4 px-6">
+                         <button
+  onClick={() => handleViewDetail(row)}
+  className="font-medium px-6 py-1 rounded-full border bg-white transition-colors duration-200 cursor-pointer"
+  style={{
+    color: themeConfig?.tokens?.primary || '#1976d2',
+    borderColor: themeConfig?.tokens?.primary || '#1976d2',
+  }}
+  onMouseEnter={(e) => {
+    const primary = themeConfig?.tokens?.primary || '#1976d2'
+    e.currentTarget.style.backgroundColor = primary
+    e.currentTarget.style.color = '#fff'
+  }}
+  onMouseLeave={(e) => {
+    const primary = themeConfig?.tokens?.primary || '#1976d2'
+    e.currentTarget.style.backgroundColor = '#fff'
+    e.currentTarget.style.color = primary
+  }}
+>
+  View
+</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <LocalShipping sx={{ fontSize: 48, color: '#cbd5e1' }} />
+              <Typography variant="h6" color="text.secondary" fontWeight={600}>
+                No consignments found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {loadsData.length === 0 ? 'No consignment data available' : 'Try adjusting your search criteria'}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        
       </Paper>
+
+      <div className="mt-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-600">
+            {(() => {
+              const count = filteredData ? filteredData.length : 0;
+              const start = count === 0 ? 0 : page * rowsPerPage + 1;
+              const end = Math.min((page + 1) * rowsPerPage, count);
+              return `Showing ${start} to ${end} of ${count} consignments`;
+            })()}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-500">Rows</span>
+            <TextField
+              select
+              size="small"
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              SelectProps={{ native: true }}
+              sx={{
+                minWidth: 84,
+                '& .MuiOutlinedInput-root': { 
+                  borderRadius: '9999px',
+                  backgroundColor: '#fff',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#d1d5db',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#94a3b8',
+                },
+                '& .MuiSelect-select, & .MuiOutlinedInput-input': {
+                  paddingTop: '6px',
+                  paddingBottom: '6px',
+                  paddingLeft: '16px',
+                  paddingRight: '28px',
+                },
+              }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </TextField>
+            <Button
+              variant="text"
+              disabled={page === 0}
+              onClick={() => handleChangePage(null, page - 1)}
+              sx={{ textTransform: 'none', color: '#0f172a', fontWeight: 600 }}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {
+                (() => {
+                  const count = filteredData ? filteredData.length : 0;
+                  const totalPages = Math.max(1, Math.ceil(count / rowsPerPage));
+                  const maxToShow = 5;
+                  let start = Math.max(1, (page + 1) - Math.floor(maxToShow / 2));
+                  let end = Math.min(totalPages, start + maxToShow - 1);
+                  start = Math.max(1, end - maxToShow + 1);
+                  const pages = [];
+                  for (let p = start; p <= end; p++) {
+                    const active = p === page + 1;
+                    pages.push(
+                      <Button
+                        key={p}
+                        variant={active ? 'outlined' : 'text'}
+                        onClick={() => handleChangePage(null, p - 1)}
+                        sx={{
+                          minWidth: 0,
+                          px: active ? 1.2 : 1,
+                          py: 0.1,
+                          fontWeight: active ? 700 : 600,
+                          color: active ? '#0f172a' : '#64748b',
+                          borderColor: '#94a3b8',
+                          borderRadius:'0.5rem',
+                          textTransform: 'none',
+                        }}
+                      >
+                        {p}
+                      </Button>
+                    );
+                  }
+                  return pages;
+                })()
+              }
+            </div>
+            <Button
+              variant="text"
+              disabled={(page + 1) * rowsPerPage >= (filteredData ? filteredData.length : 0)}
+              onClick={() => handleChangePage(null, page + 1)}
+              sx={{ textTransform: 'none', color: '#0f172a', fontWeight: 700 }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Full Screen Popup Modal */}
       <Modal
