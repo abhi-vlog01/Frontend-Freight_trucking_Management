@@ -55,7 +55,7 @@ import {
 } from '@mui/icons-material';
 import ContainerIcon from '../icons/ContainerIcon';
 import { useAuth } from '../../context/AuthContext';
-import UniversalSearch from '../UniversalSearch';
+// import UniversalSearch from '../UniversalSearch';
 import { useThemeConfig } from '../../context/ThemeContext';
 import { useNegotiation } from '../../context/NegotiationContext';
 import { Badge } from '@mui/material';
@@ -631,9 +631,9 @@ const Layout = () => {
 
 
           {/* Universal Search Bar */}
-          <Box sx={{ width: 400 }}>
+          {/* <Box sx={{ width: 400 }}>
             <UniversalSearch />
-          </Box>
+          </Box> */}
 
           <Box sx={{ flexGrow: 1 }} />
 
