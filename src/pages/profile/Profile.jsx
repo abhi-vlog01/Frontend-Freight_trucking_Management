@@ -18,11 +18,9 @@ import {
   CalendarMonth,
   Person,
   Flag,
-  Translate,
   Call,
   Email,
   Business,
-  LocalShipping,
   Assignment,
   CheckCircle,
   Pending,
@@ -35,33 +33,44 @@ const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user: currentUser } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${BASE_API_URL}/api/v1/shipper_driver/`);
-        
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Please log in to view profile');
+          setLoading(false);
+          return;
+        }
+        const isTrucker = user?.type === 'trucker';
+        const profileUrl = isTrucker
+          ? `${BASE_API_URL}/api/v1/shipper_driver/trucker`
+          : `${BASE_API_URL}/api/v1/shipper_driver/`;
+        const response = await fetch(profileUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          setError('Session expired or access denied. Please log in again.');
+          setLoading(false);
+          return;
+        }
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
-        if (result.success && result.data && result.data.length > 0) {
-          // Filter data based on current logged-in user's userId
-          const currentUserData = result.data.find(
-            (user) => user.userId === currentUser?.userId
-          );
-          
-          if (currentUserData) {
-            setUserData(currentUserData);
-          } else {
-            throw new Error('User data not found');
-          }
+
+        if (result.success && result.data) {
+          setUserData(result.data);
         } else {
-          throw new Error('No user data found');
+          throw new Error(result.message || 'No profile data found');
         }
       } catch (err) {
         setError(err.message);
@@ -71,13 +80,8 @@ const Profile = () => {
       }
     };
 
-    if (currentUser?.userId) {
-      fetchUserData();
-    } else {
-      setError('No user logged in');
-      setLoading(false);
-    }
-  }, [currentUser?.userId]);
+    fetchUserData();
+  }, [user?.type]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -340,30 +344,6 @@ const Profile = () => {
                       </Typography>
                       <Typography variant="body1" fontWeight={600} color="text.primary">
                         {userData.mc_dot_no || 'N/A'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <LocalShipping sx={{ color: '#667eea', fontSize: 20 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        Carrier Type
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600} color="text.primary">
-                        {userData.carrierType || 'N/A'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <LocalShipping sx={{ color: '#667eea', fontSize: 20 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        Fleet Size
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600} color="text.primary">
-                        {userData.fleetsize || 'N/A'}
                       </Typography>
                     </Box>
                   </Box>

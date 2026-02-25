@@ -287,7 +287,7 @@ const Consignment = () => {
             setLoadingHistory(true);
             setHistoryError(null);
             
-            const trackingResponse = await fetch(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${data.data.load.shipmentNumber}`);
+            const trackingResponse = await fetch(`${BASE_API_URL}/api/v1/load/shipment/${data.data.load.shipmentNumber}`);
             const trackingData = await trackingResponse.json();
             
             if (trackingData.success && trackingData.tracking) {

@@ -22,6 +22,12 @@ export const NegotiationProvider = ({ children }) => {
   const processedMessageIdsRef = useRef(new Set());
   const isPollingRef = useRef(false);
   const hasInitialPollCompletedRef = useRef(false);
+  const lastThreadFetchByBidRef = useRef(new Map()); // Throttle: don't refetch same bid thread within 60s
+  const lastBidLoadFetchByLoadIdRef = useRef(new Map()); // Throttle: don't refetch bid/load for same load within 60s
+  const lastPollStartedRef = useRef(0); // Prevent rapid consecutive poll cycles
+  const THREAD_FETCH_COOLDOWN_MS = 60000; // 1 minute per bid
+  const BID_LOAD_COOLDOWN_MS = 60000; // 1 minute per load for GET bid/load
+  const POLL_CYCLE_COOLDOWN_MS = 45000; // Don't start a new poll if one ran in last 45s
 
   // Calculate unread count
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -149,12 +155,11 @@ export const NegotiationProvider = ({ children }) => {
 
   const pollNegotiations = async () => {
     if (isPollingRef.current) return;
-    if (!user) {
-        console.log('NegotiationPolling: No user found');
-        return;
-    }
+    if (!user) return;
+    const now = Date.now();
+    if (now - lastPollStartedRef.current < POLL_CYCLE_COOLDOWN_MS) return; // Skip if we ran a poll recently
+    lastPollStartedRef.current = now;
     isPollingRef.current = true;
-    console.log('NegotiationPolling: Starting poll cycle for', user.type);
 
     try {
       const token = localStorage.getItem('token');
@@ -171,10 +176,15 @@ export const NegotiationProvider = ({ children }) => {
         if (response.data && Array.isArray(response.data.acceptedBids)) {
           const bids = response.data.acceptedBids;
           
-          // For each bid, check negotiation thread
           for (const bid of bids) {
             try {
-              const bidId = bid.bidId || bid._id;
+              const bidId = (bid.bidId || bid._id)?.toString();
+              if (!bidId) continue;
+              const now = Date.now();
+              if (lastThreadFetchByBidRef.current.get(bidId) && (now - lastThreadFetchByBidRef.current.get(bidId)) < THREAD_FETCH_COOLDOWN_MS) {
+                continue; // Skip: already fetched this bid recently
+              }
+              lastThreadFetchByBidRef.current.set(bidId, now);
               const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
                 headers: { Authorization: `Bearer ${token}` }
               });
@@ -204,28 +214,39 @@ export const NegotiationProvider = ({ children }) => {
              
              console.log('NegotiationPolling: Shipper loads found', loads.length);
 
-             // Iterate ALL loads to be safe (temporarily removed filter for debugging)
              for (const load of loads) {
                try {
-                 // Get bids for this load
+                 const loadId = (load._id || load.id)?.toString();
+                 if (!loadId) continue;
+                 const loadNow = Date.now();
+                 if (lastBidLoadFetchByLoadIdRef.current.get(loadId) && (loadNow - lastBidLoadFetchByLoadIdRef.current.get(loadId)) < BID_LOAD_COOLDOWN_MS) {
+                   continue; // Skip: already fetched bids for this load recently
+                 }
+                 lastBidLoadFetchByLoadIdRef.current.set(loadId, loadNow);
+
                  const bidsRes = await axios.get(`${BASE_API_URL}/api/v1/bid/load/${load._id}`, {
                    headers: { Authorization: `Bearer ${token}` }
                  });
 
                  const bids = bidsRes.data.bids || [];
-                 console.log(`NegotiationPolling: Bids for load ${load._id}`, bids.length);
                  
                  // Iterate bids
                  for (const bid of bids) {
                    try {
-                      const bidId = bid._id;
+                      const bidId = (bid._id || bid.bidId)?.toString();
+                      if (!bidId) continue;
+                      const now = Date.now();
+                      if (lastThreadFetchByBidRef.current.get(bidId) && (now - lastThreadFetchByBidRef.current.get(bidId)) < THREAD_FETCH_COOLDOWN_MS) {
+                        continue;
+                      }
+                      lastThreadFetchByBidRef.current.set(bidId, now);
                       const threadResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
                         headers: { Authorization: `Bearer ${token}` }
                       });
 
                       if (threadResponse.data.success && threadResponse.data.data?.internalNegotiation?.history) {
                         const history = threadResponse.data.data.internalNegotiation.history;
-                        processHistory(history, bid, 'trucker'); // Trucker sends messages to Shipper
+                        processHistory(history, bid, 'trucker');
                       }
                    } catch (err) {
                      // Silent fail for individual bid
@@ -248,18 +269,18 @@ export const NegotiationProvider = ({ children }) => {
     }
   };
 
-  // Global Polling Logic
+  // Global Polling Logic - use user id only so effect doesn't re-run on every user object reference change
+  const userId = user?._id ?? user?.userId ?? null;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
 
-    // Initial poll
     pollNegotiations();
 
-    // Polling enabled for global alerts
-    const intervalId = setInterval(pollNegotiations, 15000);
-    
+    const POLL_INTERVAL_MS = 60000;
+    const intervalId = setInterval(pollNegotiations, POLL_INTERVAL_MS);
+
     return () => clearInterval(intervalId);
-  }, [user]); // Re-run if user changes
+  }, [userId]);
 
   const value = {
     isOpen,

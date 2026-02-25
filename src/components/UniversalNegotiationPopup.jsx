@@ -17,45 +17,43 @@ const UniversalNegotiationPopup = () => {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
 
-  // Poll history when open
-  useEffect(() => {
-    if (!isOpen || !negotiationData) return;
-    
-    const fetchHistory = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const bidId = negotiationData.bidId || negotiationData._id;
-            const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.data.success && response.data.data?.internalNegotiation) {
-                setHistory(response.data.data.internalNegotiation.history || []);
-            }
-        } catch (error) {
-            console.error('Error fetching negotiation history:', error);
-        }
-    };
-    
-    fetchHistory();
-    // Socket setup for real-time updates
-    if (socket && negotiationData) {
-        const bidId = negotiationData.bidId || negotiationData._id;
-        socket.emit('join_bid_negotiation', bidId);
-        
-        const handleNegotiationUpdate = (data) => {
-            if (data.bidId === bidId && data.internalNegotiation) {
-                setHistory(data.internalNegotiation.history || []);
-            }
-        };
+  // Stable bid id so effect doesn't re-run on every negotiationData object reference change
+  const bidId = negotiationData?.bidId || negotiationData?._id || null;
 
-        socket.on('bid_negotiation_update', handleNegotiationUpdate);
-        
-        return () => {
-            socket.emit('leave_bid_negotiation', bidId);
-            socket.off('bid_negotiation_update', handleNegotiationUpdate);
-        };
+  // Poll history when open (fetch once per bid; socket handles real-time updates)
+  useEffect(() => {
+    if (!isOpen || !bidId) return;
+
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.success && response.data.data?.internalNegotiation) {
+          setHistory(response.data.data.internalNegotiation.history || []);
+        }
+      } catch (error) {
+        console.error('Error fetching negotiation history:', error);
+      }
+    };
+
+    fetchHistory();
+
+    if (socket) {
+      socket.emit('join_bid_negotiation', bidId);
+      const handleNegotiationUpdate = (data) => {
+        if (data.bidId === bidId && data.internalNegotiation) {
+          setHistory(data.internalNegotiation.history || []);
+        }
+      };
+      socket.on('bid_negotiation_update', handleNegotiationUpdate);
+      return () => {
+        socket.emit('leave_bid_negotiation', bidId);
+        socket.off('bid_negotiation_update', handleNegotiationUpdate);
+      };
     }
-  }, [isOpen, negotiationData, socket]);
+  }, [isOpen, bidId, socket]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

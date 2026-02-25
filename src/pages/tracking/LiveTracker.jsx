@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOMServer from "react-dom/server";
 import axios from "axios";
+import  { BASE_API_URL } from '../../apiConfig';
 import {
   Box,
   Typography,
@@ -63,6 +64,7 @@ export default function LiveTracker() {
   const [mapView, setMapView] = useState("route"); // "route" or "current"
   const [loading, setLoading] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  const [apiError, setApiError] = useState(null);
   const [helpLoading, setHelpLoading] = useState({});
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [selectedDriverInfo, setSelectedDriverInfo] = useState(null);
@@ -148,8 +150,8 @@ export default function LiveTracker() {
     try {
       // Make authenticated request to help API based on user type
       const helpEndpoint = userType === 'trucker' 
-        ? `https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/load/${truck.id}/help-auto`
-        : `https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/load/${truck.id}/help-auto`;
+        ? `${BASE_API_URL}/api/v1/load/trucker/load/${truck.id}/help-auto`
+        : `${BASE_API_URL}/api/v1/load/shipper/load/${truck.id}/help-auto`;
       
       const response = await axios.get(helpEndpoint, {
         headers: {
@@ -278,6 +280,7 @@ export default function LiveTracker() {
   };
 
   const fetchConsignments = async () => {
+    setApiError(null);
     // Check if we have a token first
     const token = getAuthToken();
     setHasToken(!!token);
@@ -294,7 +297,7 @@ export default function LiveTracker() {
     try {
       let res;
       if (searchTerm.trim()) {
-        res = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${searchTerm.toUpperCase()}`);
+        res = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/${searchTerm.toUpperCase()}`);
         console.log('API Response for single shipment:', res.data);
         
         // Handle different response structures
@@ -316,7 +319,7 @@ export default function LiveTracker() {
           // Try to get tracking data separately if shipment number is available
           if (loadData.loadReference?.shipmentNumber) {
             try {
-              const trackingRes = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/${loadData.loadReference.shipmentNumber}`);
+              const trackingRes = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/${loadData.loadReference.shipmentNumber}`);
               if (trackingRes.data?.tracking) {
                 trackingData = trackingRes.data.tracking;
                 console.log('✅ Found separate tracking data:', trackingData);
@@ -475,8 +478,9 @@ export default function LiveTracker() {
           
           console.log('Created shipment object:', shipment);
           setConsignments([shipment]);
+          setLoading(false); // Stop spinner as soon as shipment is shown
           
-          // Fetch optimized route for this shipment immediately
+          // Fetch optimized route for this shipment in background
           if (originLat && originLng && destLat && destLng && originLat !== 0 && originLng !== 0 && destLat !== 0 && destLng !== 0) {
             console.log('📍 Fetching route for searched shipment:', shipment.number);
             try {
@@ -521,8 +525,8 @@ export default function LiveTracker() {
         // Default to shipper if userType is not set
         const currentUserType = userType || 'shipper';
         const apiEndpoint = currentUserType === 'trucker' 
-          ? 'https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/in-transit-loads-with-location'
-          : 'https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/in-transit-loads-with-location';
+          ? `${BASE_API_URL}/api/v1/load/trucker/in-transit-loads-with-location`
+          : `${BASE_API_URL}/api/v1/load/shipper/in-transit-loads-with-location`;
         
         console.log(`Using API endpoint for ${currentUserType}:`, apiEndpoint);
         
@@ -636,8 +640,9 @@ export default function LiveTracker() {
           });
           
           setConsignments(shipments);
+          setLoading(false); // Stop spinner as soon as shipment list is shown; routes load in background
           
-          // Fetch optimized routes for all loads
+          // Fetch optimized routes for all loads (in background, no need to block spinner)
           const newRoutePaths = {};
           console.log('Starting to fetch routes for', loads.length, 'loads');
           
@@ -728,7 +733,7 @@ export default function LiveTracker() {
           // Fallback to old API if new API doesn't work
           console.log('Trying fallback API...');
           try {
-            const fallbackRes = await axios.get(`https://vpl-liveproject-1.onrender.com/api/v1/load/shipment/`, {
+            const fallbackRes = await axios.get(`${BASE_API_URL}/api/v1/load/shipment/`, {
               headers: headers
             });
             console.log('Fallback API response:', fallbackRes.data);
@@ -779,8 +784,8 @@ export default function LiveTracker() {
             try {
               const currentUserType = userType || 'shipper';
               const altEndpoint = currentUserType === 'trucker' 
-                ? 'https://vpl-liveproject-1.onrender.com/api/v1/load/trucker/loads'
-                : 'https://vpl-liveproject-1.onrender.com/api/v1/load/shipper/loads';
+                ? `${BASE_API_URL}/api/v1/load/trucker/loads`
+                : `${BASE_API_URL}/api/v1/load/shipper/loads`;
               
               const altRes = await axios.get(altEndpoint, {
                 headers: headers
@@ -870,6 +875,8 @@ export default function LiveTracker() {
         console.error("API Error Response:", JSON.stringify(err.response.data, null, 2));
       }
       
+      const message = err.response?.data?.message || err.message || "Failed to load in-transit loads";
+      setApiError(message);
       setConsignments([]);
     } finally {
       setLoading(false);
@@ -878,7 +885,7 @@ export default function LiveTracker() {
 
   useEffect(() => {
     fetchConsignments();
-  }, [searchTerm, userType]);
+  }, [searchTerm, userType, isAuthenticated]);
 
   // Auto-fetch routes when consignments are loaded
   useEffect(() => {
@@ -1039,7 +1046,40 @@ export default function LiveTracker() {
             </Box>
           )}
 
-          {!loading && hasToken && consignments.length === 0 && !searchTerm.trim() && (
+          {!loading && hasToken && apiError && (
+            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" py={8}>
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  bgcolor: "#fef2f2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 2
+                }}
+              >
+                <Typography sx={{ fontSize: 40 }}>⚠️</Typography>
+              </Box>
+              <Typography variant="h6" fontWeight={600} color="error" mb={1}>
+                Could not load data
+              </Typography>
+              <Typography fontSize={14} color="text.secondary" textAlign="center" mb={2}>
+                {apiError}
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<RefreshIcon />}
+                onClick={() => fetchConsignments()}
+                sx={{ textTransform: "none" }}
+              >
+                Retry
+              </Button>
+            </Box>
+          )}
+
+          {!loading && hasToken && !apiError && consignments.length === 0 && !searchTerm.trim() && (
             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" py={8}>
               <Box
                 sx={{

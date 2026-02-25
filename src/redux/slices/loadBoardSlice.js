@@ -95,5 +95,3 @@ const loadBoardSlice = createSlice({
 export const { resetLoadsToOriginal, setLoads } = loadBoardSlice.actions;
 
 export default loadBoardSlice.reducer;
-
-

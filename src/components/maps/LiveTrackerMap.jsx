@@ -288,9 +288,9 @@ const LiveTrackerMap = ({
       }));
       const polyline = new window.google.maps.Polyline({
         path,
-        geodesic: true,
+        geodesic: false,
         strokeColor: '#1976d2',
-        strokeOpacity: 0.7,
+        strokeOpacity: 0.9,
         strokeWeight: 5
       });
       polyline.setMap(map);
@@ -320,9 +320,9 @@ const LiveTrackerMap = ({
           if (path.length < 2) return;
           const roadPolyline = new window.google.maps.Polyline({
             path,
-            geodesic: true,
+            geodesic: false,
             strokeColor: '#1976d2',
-            strokeOpacity: 0.7,
+            strokeOpacity: 0.9,
             strokeWeight: 5
           });
           roadPolyline.setMap(map);

@@ -73,6 +73,34 @@ import SearchNavigationFeedback from '../../components/SearchNavigationFeedback'
 import { BASE_API_URL } from '../../apiConfig';
 import { fetchVerifiedLoadsForShipper, setBillsError } from '../../redux/slices/billsSlice';
 
+// Image card for Consignment Details modal; shows fallback when S3 returns Access Denied
+const ConsignmentImageCard = ({ title, urls }) => {
+  const preview = Array.isArray(urls) && urls.length > 0 ? urls[0] : null;
+  const [imgError, setImgError] = useState(false);
+  if (!preview) {
+    return (
+      <Paper variant="outlined" sx={{ width: 220, borderRadius: 2, overflow: 'hidden', p: 2 }}>
+        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>{title} (0)</Typography>
+        <Box sx={{ width: '100%', height: 140, borderRadius: 1, border: '1px dashed #cfd8dc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary', fontSize: 12 }}>No image</Box>
+      </Paper>
+    );
+  }
+  if (imgError) {
+    return (
+      <Paper variant="outlined" sx={{ width: 220, borderRadius: 2, overflow: 'hidden', p: 2 }}>
+        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>{title} ({urls?.length || 0})</Typography>
+        <Box onClick={() => window.open(preview, '_blank')} sx={{ width: '100%', height: 140, borderRadius: 1, border: '1px solid #ffcdd2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary', fontSize: 12, cursor: 'pointer', bgcolor: '#ffebee' }}>Image unavailable (check access)</Box>
+      </Paper>
+    );
+  }
+  return (
+    <Paper variant="outlined" sx={{ width: 220, borderRadius: 2, overflow: 'hidden', p: 2 }}>
+      <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>{title} ({urls?.length || 0})</Typography>
+      <Box component="img" src={preview} alt={title} onError={() => setImgError(true)} onClick={() => window.open(preview, '_blank')} sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1, border: '1px solid #e0e0e0', cursor: 'pointer', boxShadow: 0.5 }} />
+    </Paper>
+  );
+};
+
 const Bills = () => {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -2202,58 +2230,6 @@ const Bills = () => {
                     { title: 'Empty Truck Images (Drop)', urls: lrImgs?.emptyTruckImages || [] },
                   ].filter(g => Array.isArray(g.urls) && g.urls.length > 0);
 
-                  const GroupCard = ({ title, urls }) => {
-                    const preview = Array.isArray(urls) && urls.length > 0 ? urls[0] : null;
-                    return (
-                      <Paper
-           variant="outlined"
-           sx={{ 
-                          width: 220,
-             borderRadius: 2, 
-                          overflow: 'hidden',
-                          p: 2,
-                        }}
-                      >
-                        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>
-                          {title} ({urls?.length || 0})
-                        </Typography>
-                        {preview ? (
-                          <Box
-                            component="img"
-                            src={preview}
-                            alt={title}
-                            onClick={() => window.open(preview, '_blank')}
-            sx={{ 
-                              width: '100%',
-                              height: 140,
-                              objectFit: 'cover',
-                              borderRadius: 1,
-                              border: '1px solid #e0e0e0',
-                              cursor: 'pointer',
-                              boxShadow: 0.5,
-                            }}
-                          />
-                        ) : (
-                          <Box
-                            sx={{
-                              width: '100%',
-                              height: 140,
-                              borderRadius: 1,
-                              border: '1px dashed #cfd8dc',
-                 display: 'flex',
-                 alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'text.secondary',
-                              fontSize: 12,
-                            }}
-                          >
-                            No image
-                          </Box>
-                        )}
-                      </Paper>
-                    );
-                  };
-
                   if (pickupGroups.length === 0 && dropGroups.length === 0) return null;
 
                   return (
@@ -2269,7 +2245,7 @@ const Bills = () => {
                             {pickupGroups.length > 0 ? (
                               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                                 {pickupGroups.map((g, idx) => (
-                                  <GroupCard key={`pu-${idx}`} title={g.title} urls={g.urls} />
+                                  <ConsignmentImageCard key={`pu-${idx}`} title={g.title} urls={g.urls} />
                                 ))}
                    </Box>
                             ) : (
@@ -2281,7 +2257,7 @@ const Bills = () => {
                             {dropGroups.length > 0 ? (
                               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                                 {dropGroups.map((g, idx) => (
-                                  <GroupCard key={`dr-${idx}`} title={g.title} urls={g.urls} />
+                                  <ConsignmentImageCard key={`dr-${idx}`} title={g.title} urls={g.urls} />
                                 ))}
                    </Box>
                             ) : (
