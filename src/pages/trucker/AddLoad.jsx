@@ -859,6 +859,52 @@ const AddLoad = () => {
     setAddModalOpen(true);
   }, []);
 
+  const exportToCSV = useCallback(() => {
+    const base = (() => {
+      if (!searchTerm?.trim()) return loadsData || [];
+      const s = searchTerm.toLowerCase();
+      return (loadsData || []).filter((load) =>
+        load.loadType?.toLowerCase().includes(s) ||
+        load.origins?.[0]?.addressLine1?.toLowerCase().includes(s) ||
+        load.destinations?.[0]?.addressLine1?.toLowerCase().includes(s) ||
+        load.customerLoadDetails?.customerName?.toLowerCase().includes(s) ||
+        load.origins?.[0]?.commodity?.toLowerCase().includes(s) ||
+        load.containerNo?.toLowerCase().includes(s) ||
+        load.poNumber?.toLowerCase().includes(s)
+      );
+    })();
+    const data = base.map((load) => ({
+      'Load Type': load.loadType || '',
+      'Pickup': load.origins?.[0]?.addressLine1 || load.fromAddress || '',
+      'Delivery': load.destinations?.[0]?.addressLine1 || load.toAddress || '',
+      'Weight (lbs)': load.origins?.[0]?.weight || load.weight || '',
+      'Rate': load.rate ?? '',
+      'Customer': load.customerLoadDetails?.customerName || load.customerName || '',
+      'Status': load.status || '',
+    }));
+    const headers = Object.keys(data[0] || { 'Load Type': '', Pickup: '', Delivery: '', 'Weight (lbs)': '', Rate: '', Customer: '', Status: '' });
+    const csvRows = [
+      headers.join(','),
+      ...data.map((row) =>
+        headers
+          .map((h) => {
+            const val = row[h] ?? '';
+            const s = String(val).replace(/"/g, '""');
+            return `"${s}"`;
+          })
+          .join(',')
+      ),
+    ];
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'loads.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [loadsData, searchTerm]);
+
   const handleEditLoad = useCallback(async (load) => {
     try {
       setLoading(true);
@@ -1330,6 +1376,23 @@ const AddLoad = () => {
     : (themeConfig.tokens?.primary || '#1976d2');
   const headerTextColor = themeConfig.header?.text || '#ffffff';
 
+  const totalItems = filteredData ? filteredData.length : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage || 1));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const pageStart = clampedPage * rowsPerPage;
+  const pageEnd = Math.min(totalItems, pageStart + rowsPerPage);
+  const visibleLoads = (filteredData || []).slice(pageStart, pageEnd);
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    const start = Math.max(1, clampedPage + 1 - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (start > 1) pages.push(1, '…');
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) pages.push('…', totalPages);
+    return pages;
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       {error && (
@@ -1343,360 +1406,273 @@ const AddLoad = () => {
         </Alert>
       )}
 
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700} sx={{ color: (themeConfig.tokens?.text || '#333333'), ...(themeConfig.content?.bgImage ? { backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: 1, px: 1 } : {}) }}>
-            Add Load
-          </Typography>
-          <Chip
-            label={`${loadsData.length} Load${loadsData.length !== 1 ? 's' : ''}`}
-            color="primary"
-            sx={{ fontWeight: 600 }}
-          />
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search loads..."
-            value={searchTerm}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleAddLoad}
-            sx={{
-              backgroundColor: '#1976d2',
-              color: 'white',
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: '#0d47a1',
-              },
-            }}
+     <div className="mb-2 flex items-center gap-3">
+  <span className="text-2xl font-semibold text-gray-700">Add Load</span>
+  <span className="bg-blue-600 text-white text-sm font-semibold px-3 py-1.5 rounded-full">
+    {loadsData.length} Load{loadsData.length !== 1 ? 's' : ''}
+  </span>
+</div>
+      <div className="mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => {
+                handleSearch(e);
+                setPage(0);
+              }}
+              className="w-full h-12 rounded-md border border-gray-200 pl-10 pr-3 text-lg outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={exportToCSV}
+            className="h-11 px-6 rounded-md border border-blue-600 text-blue-600 text-base font-medium cursor-pointer hover:bg-blue-600 hover:text-white"
           >
+            Export CSV
+          </button>
+          <button
+            onClick={handleAddLoad}
+            className="h-11 px-6 rounded-md bg-blue-600 text-white text-base font-medium cursor-pointer flex items-center gap-1.5"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
             Add Load
-          </Button>
-        </Stack>
-      </Box>
+          </button>
+        </div>
+      </div>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: ((themeConfig.table?.bgImage || themeConfig.content?.bgImage) ? 'transparent' : (themeConfig.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
-        {themeConfig.table?.bgImage && (
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${themeConfig.table.bgImage})`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: Number(themeConfig.table?.bgImageOpacity ?? 0),
-            pointerEvents: 'none',
-            zIndex: 0,
-          }} />
-        )}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Table
-          sx={{
-            borderRadius: 3,
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            border: '1px solid #e5e7eb',
-            backgroundColor: (themeConfig.table?.bgImage || themeConfig.content?.bgImage) ? 'rgba(255,255,255,0.88)' : 'inherit'
-          }}
-        >
-          <TableHead>
-            <TableRow sx={{ backgroundColor: (themeConfig.table?.headerBg || '#f0f4f8') }}>
-              {[
-                'Load Type',
-                'Pickup',
-                'Delivery',
-                'Weight',
-                'Rate',
-                'Customer',
-                'Actions',
-              ].map((header) => (
-                <TableCell
-                  key={header}
-                  sx={{
-                    fontWeight: 700,
-                    color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333'),
-                    fontSize: '0.95rem',
-                    py: 1.5,
-                    borderBottom: '2px solid #e2e8f0',
-                  }}
+     <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+  <div className="overflow-x-auto p-4">
+    <table className="min-w-full border-separate border-spacing-y-4">
+      <thead>
+  <tr className="text-left bg-slate-100">
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">
+      Load Type
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+      Pickup
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+      Delivery
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+      Weight
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+      Rate
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+      Customer
+    </th>
+    <th className="px-5 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">
+      Actions
+    </th>
+  </tr>
+</thead>
+      <tbody>
+        {loading ? (
+          <tr>
+            <td className="px-3 py-6 text-center text-sm text-slate-500" colSpan={7}>Loading…</td>
+          </tr>
+        ) : totalItems === 0 ? (
+          <tr>
+            <td className="px-3 py-6 text-center text-sm text-slate-500" colSpan={7}>
+              {loadsData.length === 0 ? "Add your first load to get started!" : "No loads found. Try adjusting your search criteria"}
+            </td>
+          </tr>
+        ) : (
+          visibleLoads.map((load) => (
+            <tr key={load._id} className="hover:bg-slate-50">
+              <td className="px-5 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
+                <span
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${
+                    (load.loadType || '').toUpperCase() === 'DRAYAGE'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                  }`}
                 >
-                  {header}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
+                  {load.loadType || 'N/A'}
+                </span>
+              </td>
+             {/* Origin Address */}
+<td className="px-5 py-4 text-gray-700 font-medium border-t border-b border-gray-200">
+  <div className="relative group max-w-[150px]">
 
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : filteredData && filteredData.length > 0 ? (
-              filteredData
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((load) => (
-                  <TableRow
-                    key={load._id}
-                    hover
-                    sx={{
-                      transition: 'all 0.25s ease',
-                      borderBottom: '1px solid #f1f5f9',
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                      },
-                    }}
+    <span className="block truncate">
+      {load.origins?.[0]?.addressLine1 || load.fromAddress || "N/A"}
+    </span>
+
+    {(load.origins?.[0]?.addressLine1 || load.fromAddress) && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-sm px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {load.origins?.[0]?.addressLine1 || load.fromAddress}
+      </div>
+    )}
+
+  </div>
+</td>
+
+{/* Destination Address */}
+<td className="px-5 py-4 text-gray-700 font-medium border-t border-b border-gray-200">
+  <div className="relative group max-w-[150px]">
+
+    <span className="block truncate">
+      {load.destinations?.[0]?.addressLine1 || load.toAddress || "N/A"}
+    </span>
+
+    {(load.destinations?.[0]?.addressLine1 || load.toAddress) && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-sm px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {load.destinations?.[0]?.addressLine1 || load.toAddress}
+      </div>
+    )}
+
+  </div>
+</td>
+              <td className="px-5 py-4 text-gray-700 font-medium truncate border-t border-b border-gray-200">
+                {(load.origins?.[0]?.weight || load.weight || "N/A") + (load.weight || load.origins?.[0]?.weight ? " lbs" : "")}
+              </td>
+              <td className="px-5 py-4 text-gray-700 font-medium truncate border-t border-b border-gray-200">
+  {load.rate != null ? `$ ${Number(load.rate).toLocaleString()}` : "N/A"}
+</td>
+              <td className="px-5 py-4 text-gray-700 font-medium truncate border-t border-b border-gray-200">
+                {load.customerLoadDetails?.customerName || load.customerName || "N/A"}
+              </td>
+              <td className="px-5 py-4 font-medium rounded-r-xl border-t border-b border-r border-gray-200">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => handleViewLoad(load)}
+                    className="h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
                   >
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleEditLoad(load)}
+                    disabled={load.status === 'Assigned'}
+                    className={`h-8 px-3 rounded-md border text-base font-medium cursor-pointer ${
+                      load.status === 'Assigned'
+                        ? 'border-slate-300 text-slate-400 cursor-not-allowed'
+                        : 'border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white'
+                    }`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleOpenAssignDriver(load)}
+                    disabled={load.status === 'Assigned'}
+                    className={`h-8 px-3 rounded-md border text-base font-medium cursor-pointer ${
+                      load.status === 'Assigned'
+                        ? 'border-slate-300 text-slate-400 cursor-not-allowed'
+                        : 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white'
+                    }`}
+                  >
+                    Assign
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLoad(load._id)}
+                    disabled={load.status === 'Assigned'}
+                    className={`h-8 px-3 rounded-md border text-base font-medium cursor-pointer ${
+                      load.status === 'Assigned'
+                        ? 'border-slate-300 text-slate-400 cursor-not-allowed'
+                        : 'border-red-600 text-red-600 hover:bg-red-600 hover:text-white'
+                    }`}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-                    <TableCell sx={{ py: 2 }}>
-                      <Chip
-                        label={load.loadType || 'N/A'}
-                        size="small"
-                        color="primary"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                          height: 26,
-                          backgroundColor: load.loadType === 'DRAYAGE' ? '#dbeafe' : '#e0e7ff',
-                          color: load.loadType === 'DRAYAGE' ? '#1e40af' : '#3730a3',
-                          border: load.loadType === 'DRAYAGE' ? '1px solid #bfdbfe' : '1px solid #c7d2fe',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ color: '#475569', py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'start', gap: 1 }}>
-                        <LocationOn sx={{ fontSize: 16, color: '#94a3b8', mt: 0.5 }} />
-                        <Typography variant="body2">
-                          {load.origins?.[0]?.addressLine1 || load.fromAddress || 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#475569', py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'start', gap: 1 }}>
-                        <LocationOn sx={{ fontSize: 16, color: '#94a3b8', mt: 0.5 }} />
-                        <Typography variant="body2">
-                          {load.destinations?.[0]?.addressLine1 || load.toAddress || 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#64748b', py: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {load.origins?.[0]?.weight || load.weight || 'N/A'} lbs
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <AttachMoney sx={{ fontSize: 18, color: '#10b981', fontWeight: 700 }} />
-                        <Typography sx={{ 
-                          color: '#059669', 
-                          fontWeight: 700, 
-                          fontSize: '1rem',
-                          fontFamily: 'monospace'
-                        }}>
-                          {load.rate ? load.rate.toLocaleString() : 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#475569', py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Business sx={{ fontSize: 16, color: '#94a3b8' }} />
-                        <Typography variant="body2">
-                          {load.customerLoadDetails?.customerName || load.customerName || 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell sx={{ py: 2 }}>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Visibility />}
-                          onClick={() => handleViewLoad(load)}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#2563eb',
-                            borderColor: '#bfdbfe',
-                            backgroundColor: '#eff6ff',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#2563eb',
-                              color: '#fff',
-                              borderColor: '#2563eb',
-                            },
-                          }}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Edit />}
-                          onClick={() => handleEditLoad(load)}
-                          disabled={load.status === 'Assigned'}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#0284c7',
-                            borderColor: '#bae6fd',
-                            backgroundColor: '#f0f9ff',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#0284c7',
-                              color: '#fff',
-                              borderColor: '#0284c7',
-                            },
-                            '&:disabled': {
-                              backgroundColor: '#f3f4f6',
-                              color: '#9ca3af',
-                              borderColor: '#e5e7eb',
-                            }
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Person />}
-                          onClick={() => handleOpenAssignDriver(load)}
-                          disabled={load.status === 'Assigned'}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#16a34a',
-                            borderColor: '#bbf7d0',
-                            backgroundColor: '#f0fdf4',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#16a34a',
-                              color: '#fff',
-                              borderColor: '#16a34a',
-                            },
-                            '&:disabled': {
-                              backgroundColor: '#f3f4f6',
-                              color: '#9ca3af',
-                              borderColor: '#e5e7eb',
-                            }
-                          }}
-                        >
-                          Assign
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Delete />}
-                          onClick={() => handleDeleteLoad(load._id)}
-                          disabled={load.status === 'Assigned'}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#dc2626',
-                            borderColor: '#fecaca',
-                            backgroundColor: '#fef2f2',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#dc2626',
-                              color: '#fff',
-                              borderColor: '#dc2626',
-                            },
-                            '&:disabled': {
-                              backgroundColor: '#f3f4f6',
-                              color: '#9ca3af',
-                              borderColor: '#e5e7eb',
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
+      <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3 text-sm text-slate-600">
+          <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} loads`}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+            <span>Rows per page</span>
+            <select
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setPage(Math.max(0, clampedPage - 1))}
+            disabled={clampedPage === 0}
+            className={`h-8 px-3 rounded-md text-base ${clampedPage === 0 ? "text-slate-400 cursor-not-allowed" : "text-slate-900 font-semibold cursor-pointer"}`}
+          >
+            Previous
+          </button>
+          {getPageNumbers().map((num, idx) =>
+            num === "…" ? (
+              <span key={`e-${idx}`} className="px-1 text-gray-900">
+                …
+              </span>
             ) : (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <LocalShipping sx={{ fontSize: 48, color: '#cbd5e1' }} />
-                    <Typography variant="h6" color="text.secondary" fontWeight={600}>
-                      No loads found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {loadsData.length === 0
-                        ? 'Add your first load to get started!'
-                        : 'Try adjusting your search criteria'}
-                    </Typography>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-
-        <TablePagination
-          component="div"
-          count={filteredData ? filteredData.length : 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-        </Box>
-      </Paper>
+              <button
+                key={num}
+                onClick={() => setPage(Number(num) - 1)}
+                className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${
+                  num === clampedPage + 1
+                    ? "border border-gray-900"
+                    : "text-slate-700"
+                }`}
+              >
+                {num}
+              </button>
+            ),
+          )}
+          <button
+            onClick={() => setPage(Math.min(totalPages - 1, clampedPage + 1))}
+            disabled={clampedPage >= totalPages - 1}
+            className={`h-8 px-3 rounded-md text-base ${clampedPage >= totalPages - 1 ? "text-slate-400 cursor-not-allowed" : "text-slate-900 font-semibold cursor-pointer"}`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Modern Add Load Modal */}
       <Dialog
@@ -1723,10 +1699,10 @@ const AddLoad = () => {
               <LocalShipping className="text-xl text-blue-500" />
             </Box>
             <Box>
-              <Typography variant="h5" className="font-bold mb-0.5 text-xl" sx={{ color: headerTextColor }}>
+              <Typography variant="h5" className="font-bold mb-0.5 text-xl" sx={{ color: "white" }}>
                 {selectedLoad ? 'Edit Load' : 'Create New Load'}
               </Typography>
-              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: headerTextColor }}>
+              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: "white" }}>
                 {selectedLoad ? 'Update the load details below' : 'Fill in the details to create a new shipment'}
               </Typography>
             </Box>
@@ -1771,7 +1747,7 @@ const AddLoad = () => {
                 setSelectedLoad(null);
               }}
               sx={{
-                color: headerTextColor,
+                color: 'white',
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.2)'
                 },
