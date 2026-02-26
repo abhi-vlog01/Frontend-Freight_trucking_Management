@@ -410,6 +410,19 @@ const AddUserTrucker = () => {
       [name]: value
     }));
   }, []);
+  
+  const inputFieldSx = {
+    '& .MuiInputBase-root': {
+      borderRadius: 2,
+      backgroundColor: '#fff',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4A90E2' },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#4A90E2' },
+    '& .MuiInputBase-root.Mui-focused': { backgroundColor: '#fff' },
+    '& input:-webkit-autofill': { WebkitBoxShadow: '0 0 0 1000px #fff inset' },
+  };
 
   const exportToCSV = useCallback(() => {
     const base = (() => {
@@ -606,9 +619,24 @@ const AddUserTrucker = () => {
               <td className="px-5 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
                 {customer.companyInfo?.mcDotNo || '-'}
               </td>
-              <td className="px-5 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
-                {customer.contactInfo?.email || '-'}
-              </td>
+             <td className="px-5 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
+  <div className="relative group max-w-[160px]">
+
+    <span className="block truncate">
+      {customer.contactInfo?.email || '-'}
+    </span>
+
+    {/* Tooltip */}
+    {customer.contactInfo?.email && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-sm px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {customer.contactInfo.email}
+      </div>
+    )}
+
+  </div>
+</td>
               <td className="px-5 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
                 {customer.contactInfo?.mobile || '-'}
               </td>
@@ -757,21 +785,29 @@ const AddUserTrucker = () => {
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 {/* Company Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Business fontSize="small" color="primary" />
-                    User Information
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AssignmentInd sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      User Information
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField 
@@ -790,7 +826,7 @@ const AddUserTrucker = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -810,7 +846,7 @@ const AddUserTrucker = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -830,7 +866,7 @@ const AddUserTrucker = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -838,21 +874,29 @@ const AddUserTrucker = () => {
                 </Grid>
 
                 {/* Contact Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Phone fontSize="small" color="primary" />
-                    Contact Details
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Phone sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      Contact Details
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField 
@@ -871,7 +915,7 @@ const AddUserTrucker = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -890,7 +934,7 @@ const AddUserTrucker = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -898,21 +942,29 @@ const AddUserTrucker = () => {
                 </Grid>
 
                 {/* Location Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <LocationOn fontSize="small" color="primary" />
-                    Location
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <LocationOn sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      Location
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12}>
                         <TextField 
@@ -923,7 +975,7 @@ const AddUserTrucker = () => {
                           fullWidth
                           variant="outlined"
                           placeholder="e.g. 123 Logistics Way"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -934,7 +986,7 @@ const AddUserTrucker = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -945,7 +997,7 @@ const AddUserTrucker = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -956,7 +1008,7 @@ const AddUserTrucker = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -967,7 +1019,7 @@ const AddUserTrucker = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -1005,27 +1057,39 @@ const AddUserTrucker = () => {
                 sx={{ 
                   borderRadius: '8px', 
                   textTransform: 'none', 
+                  border: '1px solid red',
+                  color:"red",
                   px: 3,
-                  fontWeight: 600
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: "red",
+                    color: 'white'
+                  }
                 }}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                disabled={loading}
-                sx={{ 
-                  borderRadius: '8px', 
-                  textTransform: 'none', 
-                  px: 4,
-                  fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  background: brand
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Users'}
-              </Button>
+             <Button 
+  type="submit" 
+  variant="contained" 
+  disabled={loading}
+  sx={{ 
+    borderRadius: '8px', 
+    textTransform: 'none', 
+    px: 4,
+    fontWeight: 600,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    background: brand,
+    color: "#fff !important",
+    "&.Mui-disabled": {
+      background: brand,
+      opacity: 0.7,
+      color: "#fff !important",
+    },
+  }}
+>
+  {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : 'Create Users'}
+</Button>
             </DialogActions>
           </Box>
         </DialogContent>
@@ -1214,19 +1278,28 @@ const AddUserTrucker = () => {
               <Button
                 variant="outlined"
                 onClick={() => setEditModalOpen(false)}
-              sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f' }}
+              sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f', ":hover": { backgroundColor: '#d32f2f', color: '#ffff' } }}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                color="primary" 
-                sx={{ borderRadius: 3, textTransform: 'none', px: 4 }}
-              >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'Update User'}
-              </Button>
+  type="submit"
+  variant="contained"
+  disabled={loading}
+  color="primary"
+  sx={{
+    borderRadius: 3,
+    textTransform: 'none',
+    px: 4,
+    color: "#fff !important",
+    "&.Mui-disabled": {
+      opacity: 0.7,
+      color: "#fff !important",
+    },
+  }}
+>
+  {loading ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : 'Update User'}
+</Button>
             </Box>
           </Box>
         </Box>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -29,15 +29,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@mui/material';
-import { 
-  Add, 
-  Search, 
-  Clear, 
-  Close, 
-  Visibility, 
-  Edit, 
-  Delete, 
+} from "@mui/material";
+import {
+  Add,
+  Search,
+  Clear,
+  Close,
+  Visibility,
+  Edit,
+  Delete,
   PersonAdd,
   Business,
   Phone,
@@ -45,18 +45,19 @@ import {
   LocationOn,
   Save,
   Cancel,
-  Description
-} from '@mui/icons-material';
- 
-import { BASE_API_URL } from '../../apiConfig';
-import { useThemeConfig } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+  Description,
+} from "@mui/icons-material";
+import { FaPlus } from "react-icons/fa";
+
+import { BASE_API_URL } from "../../apiConfig";
+import { useThemeConfig } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 
 const AddCustomer = () => {
   const { userType } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [rowsPerPage, setRowsPerPage] = useState(7);
+  const [searchTerm, setSearchTerm] = useState("");
   const [customersData, setCustomersData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -65,22 +66,28 @@ const AddCustomer = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState(() => ({
-    companyName: '',
-    mcDotNo: '',
-    email: '',
-    mobile: '',
-    companyAddress: '',
-    city: '',
-    state: '',
-    country: 'USA',
-    zipCode: '',
-    notes: ''
+    companyName: "",
+    mcDotNo: "",
+    email: "",
+    mobile: "",
+    companyAddress: "",
+    city: "",
+    state: "",
+    country: "USA",
+    zipCode: "",
+    notes: "",
   }));
 
   const { themeConfig } = useThemeConfig();
-  const brand = (themeConfig.header?.bg && themeConfig.header.bg !== 'white') ? themeConfig.header.bg : (themeConfig.tokens?.primary || '#1976d2');
-  const headerTextColor = themeConfig.header?.text || '#ffffff';
+  const brand =
+    themeConfig.header?.bg && themeConfig.header.bg !== "white"
+      ? themeConfig.header.bg
+      : themeConfig.tokens?.primary || "#1976d2";
+  const headerTextColor = themeConfig.header?.text || "#ffffff";
 
   // Fetch all customers on component mount
   useEffect(() => {
@@ -92,34 +99,37 @@ const AddCustomer = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const token = localStorage.getItem('token');
+
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${BASE_API_URL}/api/v1/${userType}-customer/all`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${BASE_API_URL}/api/v1/${userType}-customer/all`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         setCustomersData(result.data || []);
       } else {
-        throw new Error(result.message || 'Failed to fetch customers');
+        throw new Error(result.message || "Failed to fetch customers");
       }
     } catch (err) {
-      console.error('Error fetching customers:', err);
-      setError(err.message || 'Failed to fetch customers');
+      console.error("Error fetching customers:", err);
+      setError(err.message || "Failed to fetch customers");
     } finally {
       setLoading(false);
     }
@@ -127,98 +137,107 @@ const AddCustomer = () => {
 
   const addCustomer = async (customerData) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${BASE_API_URL}/api/v1/${userType}-customer/add`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${BASE_API_URL}/api/v1/${userType}-customer/add`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(customerData),
         },
-        body: JSON.stringify(customerData),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         return result.data;
       } else {
-        throw new Error(result.message || 'Failed to add customer');
+        throw new Error(result.message || "Failed to add customer");
       }
     } catch (err) {
-      console.error('Error adding customer:', err);
+      console.error("Error adding customer:", err);
       throw err;
     }
   };
 
   const updateCustomer = async (customerId, updateData) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${BASE_API_URL}/api/v1/${userType}-customer/${customerId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${BASE_API_URL}/api/v1/${userType}-customer/${customerId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
         },
-        body: JSON.stringify(updateData),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         return result.data;
       } else {
-        throw new Error(result.message || 'Failed to update customer');
+        throw new Error(result.message || "Failed to update customer");
       }
     } catch (err) {
-      console.error('Error updating customer:', err);
+      console.error("Error updating customer:", err);
       throw err;
     }
   };
 
   const deleteCustomer = async (customerId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`${BASE_API_URL}/api/v1/${userType}-customer/${customerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${BASE_API_URL}/api/v1/${userType}-customer/${customerId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         return true;
       } else {
-        throw new Error(result.message || 'Failed to delete customer');
+        throw new Error(result.message || "Failed to delete customer");
       }
     } catch (err) {
-      console.error('Error deleting customer:', err);
+      console.error("Error deleting customer:", err);
       throw err;
     }
   };
@@ -238,16 +257,16 @@ const AddCustomer = () => {
 
   const handleAddCustomer = useCallback(() => {
     setFormData({
-      companyName: '',
-      mcDotNo: '',
-      email: '',
-      mobile: '',
-      companyAddress: '',
-      city: '',
-      state: '',
-      country: 'USA',
-      zipCode: '',
-      notes: ''
+      companyName: "",
+      mcDotNo: "",
+      email: "",
+      mobile: "",
+      companyAddress: "",
+      city: "",
+      state: "",
+      country: "USA",
+      zipCode: "",
+      notes: "",
     });
     setAddModalOpen(true);
   }, []);
@@ -255,16 +274,16 @@ const AddCustomer = () => {
   const handleEditCustomer = useCallback((customer) => {
     // Map API response to form data
     setFormData({
-      companyName: customer.companyInfo?.companyName || '',
-      mcDotNo: customer.companyInfo?.mcDotNo || '',
-      email: customer.contactInfo?.email || '',
-      mobile: customer.contactInfo?.mobile || '',
-      companyAddress: customer.locationDetails?.companyAddress || '',
-      city: customer.locationDetails?.city || '',
-      state: customer.locationDetails?.state || '',
-      country: customer.locationDetails?.country || 'USA',
-      zipCode: customer.locationDetails?.zipCode || '',
-      notes: customer.notes || ''
+      companyName: customer.companyInfo?.companyName || "",
+      mcDotNo: customer.companyInfo?.mcDotNo || "",
+      email: customer.contactInfo?.email || "",
+      mobile: customer.contactInfo?.mobile || "",
+      companyAddress: customer.locationDetails?.companyAddress || "",
+      city: customer.locationDetails?.city || "",
+      state: customer.locationDetails?.state || "",
+      country: customer.locationDetails?.country || "USA",
+      zipCode: customer.locationDetails?.zipCode || "",
+      notes: customer.notes || "",
     });
     setSelectedCustomer(customer);
     setEditModalOpen(true);
@@ -275,99 +294,170 @@ const AddCustomer = () => {
     setViewModalOpen(true);
   }, []);
 
-  const handleDeleteCustomer = async (customerId) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      try {
-        setLoading(true);
-        await deleteCustomer(customerId);
-        
-        // Refresh the customer list
-        await fetchAllCustomers();
-        setSuccess('Customer deleted successfully');
-        setTimeout(() => setSuccess(null), 3000);
-      } catch (err) {
-        setError(err.message || 'Failed to delete customer');
-        setTimeout(() => setError(null), 3000);
-      } finally {
-        setLoading(false);
-      }
+  const openDeleteConfirm = useCallback((customer) => {
+    setDeleteTarget(customer);
+    setConfirmDeleteOpen(true);
+  }, []);
+
+  const closeDeleteConfirm = useCallback(() => {
+    setConfirmDeleteOpen(false);
+    setDeleteTarget(null);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      await deleteCustomer(deleteTarget._id || deleteTarget.customerId);
+      await fetchAllCustomers();
+      setSuccess("Customer deleted successfully");
+      setTimeout(() => setSuccess(null), 3000);
+      setConfirmDeleteOpen(false);
+      setDeleteTarget(null);
+    } catch (err) {
+      setError(err.message || "Failed to delete customer");
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setDeleting(false);
     }
-  };
+  }, [deleteTarget]);
 
   const handleSaveCustomer = async (e) => {
     if (e) {
       e.preventDefault();
     }
-    
+
     try {
       setLoading(true);
-      
+
       if (editModalOpen) {
         // Update existing customer with form data
         await updateCustomer(selectedCustomer.customerId, formData);
-        setSuccess('Customer updated successfully');
+        setSuccess("Customer updated successfully");
       } else {
         // Add new customer
         await addCustomer(formData);
-        setSuccess('Customer added successfully');
+        setSuccess("Customer added successfully");
       }
-      
+
       // Refresh the customer list
       await fetchAllCustomers();
       setAddModalOpen(false);
       setEditModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || 'Failed to save customer');
+      setError(err.message || "Failed to save customer");
       setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);
     }
   };
 
-
   // Filter customers based on search term - memoized for performance
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return customersData;
-    
+
     const searchLower = searchTerm.toLowerCase();
-    return customersData.filter(customer =>
-      customer.companyInfo?.companyName?.toLowerCase().includes(searchLower) ||
-      customer.contactInfo?.email?.toLowerCase().includes(searchLower) ||
-      customer.contactInfo?.mobile?.includes(searchTerm) ||
-      customer.locationDetails?.city?.toLowerCase().includes(searchLower) ||
-      customer.locationDetails?.state?.toLowerCase().includes(searchLower)
+    return customersData.filter(
+      (customer) =>
+        customer.companyInfo?.companyName
+          ?.toLowerCase()
+          .includes(searchLower) ||
+        customer.contactInfo?.email?.toLowerCase().includes(searchLower) ||
+        customer.contactInfo?.mobile?.includes(searchTerm) ||
+        customer.locationDetails?.city?.toLowerCase().includes(searchLower) ||
+        customer.locationDetails?.state?.toLowerCase().includes(searchLower),
     );
   }, [customersData, searchTerm]);
 
+  const totalItems = filteredData ? filteredData.length : 0;
+  const totalPages = Math.max(1, Math.ceil((totalItems || 1) / rowsPerPage));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const pageStart = clampedPage * rowsPerPage;
+  const pageEnd = Math.min(totalItems, pageStart + rowsPerPage);
+  const visibleRows = (filteredData || []).slice(pageStart, pageEnd);
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    const start = Math.max(1, clampedPage + 1 - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (start > 1) pages.push(1, "…");
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) pages.push("…", totalPages);
+    return pages;
+  };
+
   const handleFormInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   }, []);
+
+  const inputFieldSx = {
+    "& .MuiInputBase-root": {
+      borderRadius: 2,
+      backgroundColor: "#fff",
+      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+    },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E2E8F0" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#4A90E2" },
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#4A90E2",
+    },
+    "& .MuiInputBase-root.Mui-focused": { backgroundColor: "#fff" },
+    "& input:-webkit-autofill": { WebkitBoxShadow: "0 0 0 1000px #fff inset" },
+  };
 
   // AddCustomer Skeleton Loading Component
   const AddCustomerSkeleton = () => (
     <Box sx={{ p: 3 }}>
       {/* Header Skeleton */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Skeleton variant="text" width={150} height={32} />
-          <Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 2 }} />
+          <Skeleton
+            variant="rectangular"
+            width={100}
+            height={32}
+            sx={{ borderRadius: 2 }}
+          />
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Skeleton variant="rectangular" width={250} height={40} sx={{ borderRadius: 2 }} />
-          <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: 2 }} />
+          <Skeleton
+            variant="rectangular"
+            width={250}
+            height={40}
+            sx={{ borderRadius: 2 }}
+          />
+          <Skeleton
+            variant="rectangular"
+            width={140}
+            height={40}
+            sx={{ borderRadius: 2 }}
+          />
         </Stack>
       </Box>
 
       {/* Table Skeleton */}
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
         <Table>
           <TableHead>
-            <TableRow sx={{ background: 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)' }}>
+            <TableRow
+              sx={{
+                background: "linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)",
+              }}
+            >
               {[1, 2, 3, 4, 5, 6, 7].map((col) => (
                 <TableCell key={col}>
                   <Skeleton variant="text" width={100} height={20} />
@@ -378,17 +468,49 @@ const AddCustomer = () => {
           <TableBody>
             {Array.from({ length: 5 }).map((_, index) => (
               <TableRow key={index}>
-                <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                <TableCell><Skeleton variant="text" width={180} /></TableCell>
-                <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                <TableCell><Skeleton variant="rectangular" width={70} height={26} sx={{ borderRadius: 1 }} /></TableCell>
+                <TableCell>
+                  <Skeleton variant="text" width={150} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton variant="text" width={120} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton variant="text" width={180} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton variant="text" width={120} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton variant="text" width={150} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton
+                    variant="rectangular"
+                    width={70}
+                    height={26}
+                    sx={{ borderRadius: 1 }}
+                  />
+                </TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
-                    <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                    <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                    <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                    <Skeleton
+                      variant="rectangular"
+                      width={60}
+                      height={28}
+                      sx={{ borderRadius: 1 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width={60}
+                      height={28}
+                      sx={{ borderRadius: 1 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      width={60}
+                      height={28}
+                      sx={{ borderRadius: 1 }}
+                    />
                   </Stack>
                 </TableCell>
               </TableRow>
@@ -411,321 +533,354 @@ const AddCustomer = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
-      
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700} sx={{ color: (themeConfig.tokens?.text || '#333333'), ...(themeConfig.content?.bgImage ? { backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: 1, px: 1 } : {}) }}>
-            Add Customer
-          </Typography>
-          <Chip
-            label={`${customersData.length} Customer${customersData.length !== 1 ? 's' : ''}`}
-            color="primary"
-            sx={{ fontWeight: 600 }}
-          />
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search customers..."
-            value={searchTerm}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleAddCustomer}
-            sx={{
-              backgroundColor: '#1976d2',
-              color: 'white',
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: '#0d47a1',
-              },
-            }}
-          >
-            Add Customer
-          </Button>
-        </Stack>
-      </Box>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: ((themeConfig.table?.bgImage || themeConfig.content?.bgImage) ? 'transparent' : (themeConfig.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
-        {themeConfig.table?.bgImage && (
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${themeConfig.table.bgImage})`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: Number(themeConfig.table?.bgImageOpacity ?? 0),
-            pointerEvents: 'none',
-            zIndex: 0,
-          }} />
-        )}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Table
-          sx={{
-            borderRadius: 3,
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <TableHead>
-            <TableRow
-              sx={{
-                background: 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)',
-              }}
+      <div className="mb-2 flex items-center gap-2">
+        <div className="text-2xl font-semibold text-gray-700">Add Customer</div>
+        <span className="inline-block rounded-full bg-blue-600 text-white text-base font-semibold px-3 py-1">
+          {customersData.length}{" "}
+          {customersData.length === 1 ? "Customer" : "Customers"}
+        </span>
+      </div>
+      <div className="mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
             >
-              {[
-                'Company Name',
-                'MC/DOT No',
-                'Email',
-                'Mobile',
-                'Location',
-                'Status',
-                'Actions',
-              ].map((header) => (
-                <TableCell
-                  key={header}
-                  sx={{
-                    fontWeight: 700,
-                    color: '#374151',
-                    fontSize: '0.95rem',
-                    py: 1.5,
-                    borderBottom: '2px solid #e2e8f0',
-                  }}
-                >
-                  {header}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredData && filteredData.length > 0 ? (
-              filteredData
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((customer) => (
-                  <TableRow 
-                    key={customer._id} 
-                    hover 
-                    sx={{ 
-                      transition: 'all 0.25s ease',
-                      '&:hover': {
-                        backgroundColor: '#f0f7ff',
-                        transform: 'scale(1.01)',
-                      },
-                    }}
-                  >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full h-11 rounded-md border border-gray-200 pl-10 pr-3 text-lg outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleAddCustomer}
+            className="h-11 px-4 rounded-md border border-blue-600 text-white text-base font-medium cursor-pointer bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+          >
+            <FaPlus size={14} />
+            Add Customer
+          </button>
+        </div>
+      </div>
 
-                    <TableCell sx={{ width: '150px', fontWeight: 600, color: '#334155' }}>
+      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="overflow-x-auto p-4">
+          <table className="min-w-full border-separate border-spacing-y-4">
+            <thead>
+              <tr className="text-left bg-slate-100">
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">
+                  Company Name
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  MC/DOT No
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Mobile
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Location
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {totalItems > 0 ? (
+                visibleRows.map((customer) => (
+                  <tr key={customer._id} className="hover:bg-slate-50">
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
                       {customer.companyInfo?.companyName}
-                    </TableCell>
-                    <TableCell sx={{ width: '120px', color: '#475569' }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
                       {customer.companyInfo?.mcDotNo}
-                    </TableCell>
-                    <TableCell sx={{ width: '150px', color: '#475569' }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
                       {customer.contactInfo?.email}
-                    </TableCell>
-                    <TableCell sx={{ width: '120px', color: '#475569' }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
                       {customer.contactInfo?.mobile}
-                    </TableCell>
-                    <TableCell sx={{ width: '200px', wordWrap: 'break-word', color: '#475569' }}>
-                      {customer.locationDetails?.city}, {customer.locationDetails?.state} {customer.locationDetails?.zipCode}
-                    </TableCell>
-                    <TableCell sx={{ width: '100px' }}>
-                      <Chip
-                        label={customer.status}
-                        size="small"
-                        color={customer.status === 'active' ? 'success' : 'default'}
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ width: '150px' }}>
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Visibility />}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {customer.locationDetails?.city},{" "}
+                      {customer.locationDetails?.state}{" "}
+                      {customer.locationDetails?.zipCode}
+                    </td>
+                    <td className="px-4 py-4 text-gray-700 border-t border-b border-gray-200">
+                      <span
+                        className={`inline-block rounded-full px-3 py-1 text-base font-medium border ${
+                          (customer.status || "").toLowerCase() === "active"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-slate-100 text-slate-700 border-slate-300"
+                        }`}
+                      >
+                        {customer.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 rounded-r-xl border-t border-b border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <button
                           onClick={() => handleViewCustomer(customer)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1.5,
-                            textTransform: 'none',
-                            color: '#2563eb',
-                            borderColor: '#2563eb',
-                            '&:hover': {
-                              backgroundColor: '#2563eb',
-                              color: '#fff',
-                            },
-                          }}
+                          className="h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
                         >
                           View
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Edit />}
+                        </button>
+                        <button
                           onClick={() => handleEditCustomer(customer)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1.5,
-                            textTransform: 'none',
-                            color: '#0284c7',
-                            borderColor: '#0284c7',
-                            '&:hover': {
-                              backgroundColor: '#0284c7',
-                              color: '#fff',
-                            },
-                          }}
+                          className="h-8 px-3 rounded-md border border-cyan-600 text-cyan-600 text-base cursor-pointer font-medium hover:bg-cyan-600 hover:text-white"
                         >
                           Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Delete />}
-                          color="error"
-                          onClick={() => handleDeleteCustomer(customer._id || customer.customerId)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1.5,
-                            textTransform: 'none',
-                            color: '#dc2626',
-                            borderColor: '#dc2626',
-                            '&:hover': {
-                              backgroundColor: '#dc2626',
-                              color: '#fff',
-                            },
-                          }}
+                        </button>
+                        <button
+                          onClick={() => openDeleteConfirm(customer)}
+                          className="h-8 px-3 rounded-md border border-red-600 text-red-600 text-base cursor-pointer font-medium hover:bg-red-600 hover:text-white"
                         >
                           Delete
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))
+              ) : (
+                <tr>
+                  <td
+                    className="px-3 py-6 text-center text-sm text-slate-500"
+                    colSpan={7}
+                  >
+                    {customersData.length === 0
+                      ? "No customers found. Add your first customer!"
+                      : "No customers match your search criteria"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between pr-40">
+        <div className="flex items-center gap-3 text-sm text-slate-600">
+          <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} customers`}</span>
+        </div>
+        <div className="flex items-center gap-2 mr-8">
+          <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+            <span>Rows per page</span>
+            <select
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setPage(Math.max(0, clampedPage - 1))}
+            disabled={clampedPage === 0}
+            className={`h-8 px-3 text-base ${
+              clampedPage === 0
+                ? "text-slate-400 rounded-full cursor-not-allowed"
+                : "text-slate-900 font-semibold cursor-pointer rounded-md"
+            }`}
+          >
+            Previous
+          </button>
+          {getPageNumbers().map((num, idx) =>
+            num === "…" ? (
+              <span key={`e-${idx}`} className="px-1 text-gray-900">
+                …
+              </span>
             ) : (
-              <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    {customersData.length === 0 ? 'No customers found. Add your first customer!' : 'No customers match your search criteria'}
-                  </Typography>
-                </TableCell>
-              </TableRow>
+              <button
+                key={num}
+                onClick={() => setPage(Number(num) - 1)}
+                className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${
+                  num === clampedPage + 1
+                    ? "border border-gray-900"
+                    : "text-slate-700"
+                }`}
+              >
+                {num}
+              </button>
+            ),
+          )}
+          <button
+            onClick={() => setPage(Math.min(totalPages - 1, clampedPage + 1))}
+            disabled={clampedPage >= totalPages - 1}
+            className={`h-8 px-3 text-base ${
+              clampedPage >= totalPages - 1
+                ? "text-slate-400 rounded-full cursor-not-allowed"
+                : "text-slate-900 font-semibold cursor-pointer rounded-md"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={closeDeleteConfirm}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "white" }}>
+          Delete Customer
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ color: "text.secondary", pt: 2 }}>
+            Are you sure you want to delete{" "}
+            {deleteTarget?.companyInfo?.companyName
+              ? `'${deleteTarget.companyInfo.companyName}'`
+              : "this customer"}
+            ? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button
+            variant="outlined"
+            onClick={closeDeleteConfirm}
+            disabled={deleting}
+            sx={{ borderRadius: 2, textTransform: "none", px: 3 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmDelete}
+            disabled={deleting}
+            sx={{ borderRadius: 2, textTransform: "none", px: 3 }}
+          >
+            {deleting ? (
+              <CircularProgress size={20} sx={{ color: "#fff" }} />
+            ) : (
+              "Delete"
             )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={filteredData ? filteredData.length : 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-        </Box>
-      </Paper>
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Add Customer Dialog */}
-      <Dialog 
-        open={addModalOpen} 
-        onClose={() => setAddModalOpen(false)} 
-        maxWidth="md" 
+      <Dialog
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '16px',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
-            overflow: 'hidden'
-          }
+            borderRadius: "16px",
+            boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
+            overflow: "hidden",
+          },
         }}
       >
-        <DialogTitle sx={{ 
-          p: 0,
-          background: brand,
-          color: headerTextColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 3,
-          py: 2
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <PersonAdd sx={{ fontSize: 28 }} />
-            <Typography variant="h6" fontWeight={700}>
+        <DialogTitle
+          sx={{
+            p: 0,
+            background: brand,
+            color: headerTextColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 3,
+            py: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <PersonAdd sx={{ fontSize: 28, color: "white" }} />
+            <Typography variant="h6" fontWeight={700} sx={{ color: "white" }}>
               Add New Customer
             </Typography>
           </Box>
-          <IconButton 
+          <IconButton
             onClick={() => setAddModalOpen(false)}
-            sx={{ 
-              color: 'inherit',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+            sx={{
+              color: "white",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
             }}
           >
             <Close />
           </IconButton>
         </DialogTitle>
-        
-        <DialogContent sx={{ p: 0, bgcolor: '#f8f9fa' }}>
+
+        <DialogContent sx={{ p: 0, bgcolor: "#f8f9fa" }}>
           <Box component="form" onSubmit={handleSaveCustomer}>
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 {/* Company Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Business fontSize="small" color="primary" />
-                    Company Information
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                    transition: "0.3s",
+                    width: "100%",
+                    bgcolor: "#fff",
+
+                    "&:hover": {
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: "50%", backgroundColor: "#e3f2fd", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Business sx={{ color: "#1976d2", fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#2D3748" }}>
+                      Company Information
+                    </Typography>
+                  </Box>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      // border: "1px solid #e0e0e0",
+                      borderRadius: "12px",
+                    }}
+                  >
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="Company Name" 
-                          name="companyName" 
-                          value={formData.companyName || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="Company Name"
+                          name="companyName"
+                          value={formData.companyName || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           required
                           variant="outlined"
@@ -737,15 +892,15 @@ const AddCustomer = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="MC/DOT No" 
-                          name="mcDotNo" 
-                          value={formData.mcDotNo || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="MC/DOT No"
+                          name="mcDotNo"
+                          value={formData.mcDotNo || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           required
                           variant="outlined"
@@ -753,11 +908,19 @@ const AddCustomer = () => {
                           InputProps={{
                             startAdornment: (
                               <InputAdornment position="start">
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>#</Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: "text.secondary",
+                                  }}
+                                >
+                                  #
+                                </Typography>
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -765,29 +928,47 @@ const AddCustomer = () => {
                 </Grid>
 
                 {/* Contact Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Phone fontSize="small" color="primary" />
-                    Contact Details
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                    transition: "0.3s",
+                    width: "100%",
+                    bgcolor: "#fff",
+                    "&:hover": {
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: "50%", backgroundColor: "#e3f2fd", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Phone sx={{ color: "#1976d2", fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#2D3748" }}>
+                      Contact Details
+                    </Typography>
+                  </Box>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      // border: "1px solid #e0e0e0",
+                      borderRadius: "12px",
+                    }}
+                  >
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="Email Address" 
-                          name="email" 
+                        <TextField
+                          label="Email Address"
+                          name="email"
                           type="email"
-                          value={formData.email || ''} 
-                          onChange={handleFormInputChange} 
+                          value={formData.email || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           required
                           variant="outlined"
@@ -798,15 +979,15 @@ const AddCustomer = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="Phone Number" 
-                          name="mobile" 
-                          value={formData.mobile || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="Phone Number"
+                          name="mobile"
+                          value={formData.mobile || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           required
                           variant="outlined"
@@ -817,7 +998,7 @@ const AddCustomer = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -825,76 +1006,94 @@ const AddCustomer = () => {
                 </Grid>
 
                 {/* Location Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <LocationOn fontSize="small" color="primary" />
-                    Location
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                    transition: "0.3s",
+                    width: "100%",
+                    bgcolor: "#fff",
+                    "&:hover": {
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: "50%", backgroundColor: "#e3f2fd", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <LocationOn sx={{ color: "#1976d2", fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#2D3748" }}>
+                      Location
+                    </Typography>
+                  </Box>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      // border: "1px solid #e0e0e0",
+                      borderRadius: "12px",
+                    }}
+                  >
                     <Grid container spacing={2}>
                       <Grid item xs={12}>
-                        <TextField 
-                          label="Street Address" 
-                          name="companyAddress" 
-                          value={formData.companyAddress || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="Street Address"
+                          name="companyAddress"
+                          value={formData.companyAddress || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           variant="outlined"
                           placeholder="e.g. 123 Logistics Way"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="City" 
-                          name="city" 
-                          value={formData.city || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="City"
+                          name="city"
+                          value={formData.city || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="State/Province" 
-                          name="state" 
-                          value={formData.state || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="State/Province"
+                          name="state"
+                          value={formData.state || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="Zip/Postal Code" 
-                          name="zipCode" 
-                          value={formData.zipCode || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="Zip/Postal Code"
+                          name="zipCode"
+                          value={formData.zipCode || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField 
-                          label="Country" 
-                          name="country" 
-                          value={formData.country || ''} 
-                          onChange={handleFormInputChange} 
+                        <TextField
+                          label="Country"
+                          name="country"
+                          value={formData.country || ""}
+                          onChange={handleFormInputChange}
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -902,56 +1101,96 @@ const AddCustomer = () => {
                 </Grid>
 
                 {/* Additional Info Section jhgjhgj*/}
-                <Grid item xs={12}>
-                  <TextField 
-                    label="Additional Notes" 
-                    name="notes" 
-                    value={formData.notes || ''} 
-                    onChange={handleFormInputChange} 
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                    transition: "0.3s",
+                    width: "100%",
+                    bgcolor: "#fff",
+                    "&:hover": {
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: "50%", backgroundColor: "#e3f2fd", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Description sx={{ color: "#1976d2", fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#2D3748" }}>
+                      Additional Notes
+                    </Typography>
+                  </Box>
+                  <TextField
+                    label="Additional Notes"
+                    name="notes"
+                    value={formData.notes || ""}
+                    onChange={handleFormInputChange}
                     fullWidth
                     multiline
                     rows={3}
-                    variant="outlined"s
+                    variant="outlined"
                     placeholder="Any specific requirements or details..."
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { borderRadius: '12px' },
-                      bgcolor: 'white'
-                    }}
+                    sx={inputFieldSx}
                   />
                 </Grid>
               </Grid>
             </Box>
 
             <Divider />
-            
-            <DialogActions sx={{ p: 3, bgcolor: '#fff' }}>
-              <Button 
-                onClick={() => setAddModalOpen(false)} 
+
+            <DialogActions sx={{ p: 3, bgcolor: "#fff" }}>
+              <Button
+                onClick={() => setAddModalOpen(false)}
                 variant="outlined"
-                color="inherit"
-                sx={{ 
-                  borderRadius: '8px', 
-                  textTransform: 'none', 
+                sx={{
+                  borderRadius: "10px",
+                  textTransform: "none",
                   px: 3,
-                  fontWeight: 600
+                  py: 1,
+                  fontWeight: 600,
+                  border: "1px solid #ef4444",
+                  color: "#ef4444",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "#ef4444",
+                    color: "#ffffff",
+                    border: "1px solid #ef4444",
+                  },
                 }}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                variant="contained" 
+
+              <Button
+                type="submit"
+                variant="contained"
+                disableElevation
                 disabled={loading}
-                sx={{ 
-                  borderRadius: '8px', 
-                  textTransform: 'none', 
+                sx={{
+                  borderRadius: "10px",
+                  textTransform: "none",
                   px: 4,
+                  py: 1,
                   fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  background: brand
+                  backgroundColor: "#1d4ed8",
+                  color: "#fff !important", // ✅ force white
+                  "&:hover": {
+                    backgroundColor: "#05080eff",
+                    color: "#fff !important", // ✅ keep white on hover
+                  },
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Customer'}
+                {loading ? (
+                  <CircularProgress size={22} sx={{ color: "#fff" }} />
+                ) : (
+                  "Create Customer"
+                )}
               </Button>
             </DialogActions>
           </Box>
@@ -966,169 +1205,251 @@ const AddCustomer = () => {
       >
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90%',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
             maxWidth: 850,
-            bgcolor: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            border: '1px solid #e0e0e0'
+            bgcolor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+            maxHeight: "90vh",
+            overflow: "auto",
+            border: "1px solid #e0e0e0",
           }}
         >
-          <Box sx={{ 
-            p: 3, 
-            borderBottom: '1px solid #e0e0e0',
-            background: brand,
-            borderRadius: '12px 12px 0 0'
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" fontWeight={700} sx={{ color: headerTextColor }}>
+          <Box
+            sx={{
+              p: 3,
+              borderBottom: "1px solid #e0e0e0",
+              background: brand,
+              borderRadius: "12px 12px 0 0",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="h6" fontWeight={700} sx={{ color: "white" }}>
                 Edit Customer
               </Typography>
-              <IconButton 
+              <IconButton
                 onClick={() => setEditModalOpen(false)}
                 sx={{
                   color: headerTextColor,
-                  backgroundColor: 'transparent',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.1)'
-                  }
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    background: "rgba(255, 255, 255, 0.1)",
+                  },
                 }}
               >
-                <Close sx={{ color: headerTextColor }} />
+                <Close sx={{ color: "white" }} />
               </IconButton>
             </Box>
           </Box>
           <Box component="form" onSubmit={handleSaveCustomer} sx={{ p: 3 }}>
-            <Grid container spacing={2} sx={{ mb: 2, justifyContent: 'center' }}>
+            <Grid
+              container
+              spacing={2}
+              sx={{ mb: 2, justifyContent: "center" }}
+            >
               {/* Company Name | MC/DOT No */}
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Company Name" 
-                  name="companyName" 
-                  value={formData.companyName || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Company Name"
+                  name="companyName"
+                  value={formData.companyName || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="MC/DOT No" 
-                  name="mcDotNo" 
-                  value={formData.mcDotNo || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="MC/DOT No"
+                  name="mcDotNo"
+                  value={formData.mcDotNo || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
 
               {/* Email | Mobile */}
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Email" 
-                  name="email" 
-                  value={formData.email || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Email"
+                  name="email"
+                  value={formData.email || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Mobile" 
-                  name="mobile" 
-                  value={formData.mobile || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Mobile"
+                  name="mobile"
+                  value={formData.mobile || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
 
               {/* Company Address | City */}
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Company Address" 
-                  name="companyAddress" 
-                  value={formData.companyAddress || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Company Address"
+                  name="companyAddress"
+                  value={formData.companyAddress || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="City" 
-                  name="city" 
-                  value={formData.city || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="City"
+                  name="city"
+                  value={formData.city || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
 
               {/* State | Country */}
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="State" 
-                  name="state" 
-                  value={formData.state || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="State"
+                  name="state"
+                  value={formData.state || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Country" 
-                  name="country" 
-                  value={formData.country || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Country"
+                  name="country"
+                  value={formData.country || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
 
               {/* Zip Code | Notes */}
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Zip Code" 
-                  name="zipCode" 
-                  value={formData.zipCode || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Zip Code"
+                  name="zipCode"
+                  value={formData.zipCode || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField 
-                  label="Notes" 
-                  name="notes" 
-                  value={formData.notes || ''} 
-                  onChange={handleFormInputChange} 
+                <TextField
+                  label="Notes"
+                  name="notes"
+                  value={formData.notes || ""}
+                  onChange={handleFormInputChange}
                   fullWidth
                   multiline
                   rows={3}
                   placeholder="Additional notes about the customer..."
-                  sx={{ minWidth: '100%', '& .MuiInputBase-root': { borderRadius: '12px', paddingRight: 3 } }}
+                  sx={{
+                    minWidth: "100%",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "12px",
+                      paddingRight: 3,
+                    },
+                  }}
                 />
               </Grid>
             </Grid>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'flex-end', 
-              gap: 2,
-              mt: 3
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+                mt: 3,
+              }}
+            >
               <Button
                 variant="outlined"
                 onClick={() => setEditModalOpen(false)}
-              sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f' }}
+                sx={{
+                  borderRadius: 3,
+                  backgroundColor: "#ffff",
+                  color: "#d32f2f",
+                  textTransform: "none",
+                  px: 4,
+                  borderColor: "#d32f2f",
+                  "&:hover": { backgroundColor: "red", color: "white" },
+                }}
               >
                 Cancel
               </Button>
@@ -1136,10 +1457,23 @@ const AddCustomer = () => {
                 type="submit"
                 variant="contained"
                 disabled={loading}
-                color="primary" 
-                sx={{ borderRadius: 3, textTransform: 'none', px: 4 }}
+                sx={{
+                  borderRadius: 3,
+                  textTransform: "none",
+                  px: 4,
+                  backgroundColor: "#1976d2",
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#1565c0",
+                    color: "#fff",
+                  },
+                }}
               >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'Update Customer'}
+                {loading ? (
+                  <CircularProgress size={20} sx={{ color: "#fff" }} />
+                ) : (
+                  "Update Customer"
+                )}
               </Button>
             </Box>
           </Box>
@@ -1155,123 +1489,266 @@ const AddCustomer = () => {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          }
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+          },
         }}
       >
-          <DialogTitle sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             pb: 2,
             pt: 2,
             px: 3,
             background: brand,
             color: headerTextColor,
-            borderRadius: '8px 8px 0 0',
-            minHeight: 64
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Business sx={{ fontSize: 28, color: headerTextColor }} />
-              <Typography variant="h5" fontWeight={600} color={headerTextColor}>
+            borderRadius: "8px 8px 0 0",
+            minHeight: 64,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Business sx={{ fontSize: 28, color: "white" }} />
+            <Typography variant="h5" fontWeight={600} color="white">
               Customer Details
             </Typography>
           </Box>
-          <IconButton onClick={() => setViewModalOpen(false)} sx={{ color: headerTextColor }}>
+          <IconButton
+            onClick={() => setViewModalOpen(false)}
+            sx={{ color: "white" }}
+          >
             <Close />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, backgroundColor: '#f5f5f5' }}>
+        <DialogContent sx={{ p: 0, backgroundColor: "#f5f5f5" }}>
           {selectedCustomer ? (
             <Box sx={{ p: 3 }}>
               {/* Basic Information Section */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2, backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Business sx={{ color: '#1976d2', fontSize: 24 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: "#fff",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+                >
+                  <Business sx={{ color: "#1976d2", fontSize: 24 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, color: "#2D3748" }}
+                  >
                     Basic Information
                   </Typography>
                 </Box>
                 <Table size="small">
                   <TableBody>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, width: '40%', borderBottom: '1px solid #e0e0e0' }}>Company Name</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.companyInfo?.companyName || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          width: "40%",
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Company Name
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.companyInfo?.companyName || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>MC/DOT Number</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.companyInfo?.mcDotNo || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        MC/DOT Number
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.companyInfo?.mcDotNo || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>Status</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>
-                        <Chip 
-                          label={selectedCustomer.status} 
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Status
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        <Chip
+                          label={selectedCustomer.status}
                           size="small"
-                          color={selectedCustomer.status === 'active' ? 'success' : 'default'}
-                          sx={{ fontWeight: 600 }}
+                          sx={{
+                            fontWeight: 600,
+                            backgroundColor:
+                              selectedCustomer.status === "active"
+                                ? "#16a34a"
+                                : "#e5e7eb",
+                            "& .MuiChip-label": {
+                              color: "#ffffff", // 👈 FORCE WHITE TEXT
+                            },
+                          }}
                         />
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Created Date</TableCell>
-                      <TableCell sx={{ borderBottom: 'none' }}>{new Date(selectedCustomer.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, borderBottom: "none" }}>
+                        Created Date
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {new Date(
+                          selectedCustomer.createdAt,
+                        ).toLocaleDateString()}
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </Paper>
 
               {/* Contact Information Section */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2, backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Phone sx={{ color: '#1976d2', fontSize: 24 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: "#fff",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+                >
+                  <Phone sx={{ color: "#1976d2", fontSize: 24 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, color: "#2D3748" }}
+                  >
                     Contact Information
                   </Typography>
                 </Box>
                 <Table size="small">
                   <TableBody>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, width: '40%', borderBottom: '1px solid #e0e0e0' }}>Email</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.contactInfo?.email || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          width: "40%",
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Email
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.contactInfo?.email || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Mobile</TableCell>
-                      <TableCell sx={{ borderBottom: 'none' }}>{selectedCustomer.contactInfo?.mobile || 'N/A'}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, borderBottom: "none" }}>
+                        Mobile
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {selectedCustomer.contactInfo?.mobile || "N/A"}
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </Paper>
 
               {/* Location Details Section */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2, backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <LocationOn sx={{ color: '#1976d2', fontSize: 24 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  borderRadius: 2,
+                  backgroundColor: "#fff",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+                >
+                  <LocationOn sx={{ color: "#1976d2", fontSize: 24 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, color: "#2D3748" }}
+                  >
                     Location Details
                   </Typography>
                 </Box>
                 <Table size="small">
                   <TableBody>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, width: '40%', borderBottom: '1px solid #e0e0e0' }}>Address</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.locationDetails?.companyAddress || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          width: "40%",
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Address
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.locationDetails?.companyAddress ||
+                          "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>City</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.locationDetails?.city || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        City
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.locationDetails?.city || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>State</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.locationDetails?.state || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        State
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.locationDetails?.state || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>Zip Code</TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{selectedCustomer.locationDetails?.zipCode || 'N/A'}</TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 600,
+                          borderBottom: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Zip Code
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                        {selectedCustomer.locationDetails?.zipCode || "N/A"}
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Country</TableCell>
-                      <TableCell sx={{ borderBottom: 'none' }}>{selectedCustomer.locationDetails?.country || 'N/A'}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, borderBottom: "none" }}>
+                        Country
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {selectedCustomer.locationDetails?.country || "N/A"}
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -1279,18 +1756,47 @@ const AddCustomer = () => {
 
               {/* Additional Notes Section */}
               {selectedCustomer.notes && (
-                <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2, backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Description sx={{ color: '#1976d2', fontSize: 24 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    mb: 3,
+                    borderRadius: 2,
+                    backgroundColor: "#fff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Description sx={{ color: "#1976d2", fontSize: 24 }} />
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 600, color: "#2D3748" }}
+                    >
                       Additional Notes
                     </Typography>
                   </Box>
                   <Table size="small">
                     <TableBody>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 600, width: '40%', borderBottom: 'none' }}>Notes</TableCell>
-                        <TableCell sx={{ borderBottom: 'none' }}>{selectedCustomer.notes}</TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            width: "40%",
+                            borderBottom: "none",
+                          }}
+                        >
+                          Notes
+                        </TableCell>
+                        <TableCell sx={{ borderBottom: "none" }}>
+                          {selectedCustomer.notes}
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -1298,7 +1804,14 @@ const AddCustomer = () => {
               )}
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 8,
+              }}
+            >
               <Typography>No customer details available</Typography>
             </Box>
           )}

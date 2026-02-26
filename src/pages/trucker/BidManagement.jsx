@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -24,42 +24,50 @@ import {
   MenuItem,
   Autocomplete,
   Skeleton,
-} from '@mui/material';
-import { Receipt, Download, Search, Send } from '@mui/icons-material';
-import alertify from 'alertifyjs';
-import axios from 'axios';
-import { BASE_API_URL } from '../../apiConfig';
-import { useThemeConfig } from '../../context/ThemeContext';
-import { useNegotiation } from '../../context/NegotiationContext';
-import { useSocket } from '../../context/SocketContext';
+  IconButton,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Receipt, Download, Search, Send } from "@mui/icons-material";
+import alertify from "alertifyjs";
+import axios from "axios";
+import { BASE_API_URL } from "../../apiConfig";
+import { useThemeConfig } from "../../context/ThemeContext";
+import { useNegotiation } from "../../context/NegotiationContext";
+import { useSocket } from "../../context/SocketContext";
 
 const Dashboard = () => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const [loading, setLoading] = useState(true); 
+  const [rowsPerPage, setRowsPerPage] = useState(7);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [loading, setLoading] = useState(true);
   const [bidModalOpen, setBidModalOpen] = useState(false);
   const [selectedLoad, setSelectedLoad] = useState(null);
   const [bidForm, setBidForm] = useState({
-    pickupETA: '',
-    dropETA: '',
-    bidAmount: '',
-    message: '',
-    driverName: '',
-    vehicleNumber: '',
-    vehicleType: ''
+    pickupETA: "",
+    dropETA: "",
+    bidAmount: "",
+    message: "",
+    driverName: "",
+    vehicleNumber: "",
+    vehicleType: "",
   });
   const [bidErrors, setBidErrors] = useState({});
   const [tab, setTab] = useState(0);
   const { themeConfig } = useThemeConfig();
-  const brand = (themeConfig.header?.bg && themeConfig.header.bg !== 'white') ? themeConfig.header.bg : (themeConfig.tokens?.primary || '#1976d2');
-  const headerTextColor = themeConfig.header?.text || '#ffffff';
+  const brand =
+    themeConfig.header?.bg && themeConfig.header.bg !== "white"
+      ? themeConfig.header.bg
+      : themeConfig.tokens?.primary || "#1976d2";
+  const headerTextColor = themeConfig.header?.text || "#ffffff";
   const [pendingBids, setPendingBids] = useState([]);
   const [acceptedBids, setAcceptedBids] = useState([]);
   const handleTabChange = (event, newValue) => setTab(newValue);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
-  const [assignForm, setAssignForm] = useState({ driverId: '', vehicleNumber: '' });
+  const [assignForm, setAssignForm] = useState({
+    driverId: "",
+    vehicleNumber: "",
+  });
   const [assignBidId, setAssignBidId] = useState(null);
   const [drivers, setDrivers] = useState([]);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
@@ -68,55 +76,61 @@ const Dashboard = () => {
   const { addNotification, unreadBids, pollNegotiations } = useNegotiation();
   const { socket } = useSocket();
   const [negotiationHistory, setNegotiationHistory] = useState(null);
-  const [negotiationMessage, setNegotiationMessage] = useState('');
+  const [negotiationMessage, setNegotiationMessage] = useState("");
   const [negotiationLoading, setNegotiationLoading] = useState(false);
 
   const formatCityState = (obj) => {
-    if (!obj) return '';
-    const city = obj.city || '';
-    const state = obj.state || '';
-    if (!city && !state) return '';
-    return `${city}${state ? `, ${state}` : ''}`;
+    if (!obj) return "";
+    const city = obj.city || "";
+    const state = obj.state || "";
+    if (!city && !state) return "";
+    return `${city}${state ? `, ${state}` : ""}`;
   };
 
   const formatLatLng = (latLng) => {
-    if (!latLng || (latLng.lat == null && latLng.lon == null)) return '';
+    if (!latLng || (latLng.lat == null && latLng.lon == null)) return "";
     const lat = latLng.lat;
     const lon = latLng.lon;
-    if (lat === 0 && lon === 0) return '';
+    if (lat === 0 && lon === 0) return "";
     return `${lat.toFixed ? lat.toFixed(4) : lat}, ${lon.toFixed ? lon.toFixed(4) : lon}`;
   };
 
   const resolvePickupLocation = (row) => {
     // Prefer array structure
     if (row.origins && row.origins.length > 0) {
-      const loc = formatCityState(row.origins[0]) || row.origins[0]?.addressLine1 || '';
+      const loc =
+        formatCityState(row.origins[0]) || row.origins[0]?.addressLine1 || "";
       if (loc) return loc;
     }
     // Fallback: single origin object
-    const single = formatCityState(row.origin) || row.origin?.addressLine1 || '';
+    const single =
+      formatCityState(row.origin) || row.origin?.addressLine1 || "";
     if (single) return single;
     // Fallback: tracking coordinates
     const coords = formatLatLng(row.tracking?.originLatLng);
     if (coords) return coords;
-    return '-';
+    return "-";
   };
 
   const resolveDropLocation = (row) => {
     if (row.destinations && row.destinations.length > 0) {
-      const loc = formatCityState(row.destinations[0]) || row.destinations[0]?.addressLine1 || '';
+      const loc =
+        formatCityState(row.destinations[0]) ||
+        row.destinations[0]?.addressLine1 ||
+        "";
       if (loc) return loc;
     }
-    const single = formatCityState(row.destination) || row.destination?.addressLine1 || '';
+    const single =
+      formatCityState(row.destination) || row.destination?.addressLine1 || "";
     if (single) return single;
     const coords = formatLatLng(row.tracking?.destinationLatLng);
     if (coords) return coords;
-    return '-';
+    return "-";
   };
 
   // Function to format Load ID as "L-last 4 digits"
   const formatLoadId = (loadId) => {
-    if (!loadId) return '-';
+    if (!loadId) return "-";
     const idString = loadId.toString();
     const last4Digits = idString.slice(-4);
     return `L-${last4Digits}`;
@@ -126,42 +140,49 @@ const Dashboard = () => {
     setLoadingDetails(true);
     setViewDetailsModalOpen(true);
     setNegotiationHistory(null);
-    setNegotiationMessage('');
+    setNegotiationMessage("");
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const bidId = bid.bidId || bid._id;
       const response = await axios.get(`${BASE_API_URL}/api/v1/bid/accepted`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       // Find the specific bid from the response
       let specificBid = bid;
       if (Array.isArray(response.data.acceptedBids)) {
-        specificBid = response.data.acceptedBids.find(
-          b => (b.bidId || b._id) === bidId
-        ) || bid;
+        specificBid =
+          response.data.acceptedBids.find(
+            (b) => (b.bidId || b._id) === bidId,
+          ) || bid;
       }
       setSelectedBidDetails(specificBid);
 
       // Fetch Negotiation History
       try {
-        const negotiationResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (negotiationResponse.data.success && negotiationResponse.data.data?.internalNegotiation) {
+        const negotiationResponse = await axios.get(
+          `${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (
+          negotiationResponse.data.success &&
+          negotiationResponse.data.data?.internalNegotiation
+        ) {
           setNegotiationHistory(negotiationResponse.data.data);
         }
       } catch (err) {
-        console.error('Error fetching negotiation history:', err);
+        console.error("Error fetching negotiation history:", err);
       }
     } catch (err) {
-      console.error('Error fetching bid details:', err);
+      console.error("Error fetching bid details:", err);
       setSelectedBidDetails(bid); // Fallback to the bid data we already have
       if (window.alertify) {
-        window.alertify.error('Failed to fetch complete bid details');
+        window.alertify.error("Failed to fetch complete bid details");
       }
     } finally {
       setLoadingDetails(false);
@@ -175,7 +196,7 @@ const Dashboard = () => {
 
   const handleAssignDriver = (bid) => {
     setAssignBidId(bid.bidId || bid._id);
-    setAssignForm({ driverId: '', vehicleNumber: '' });
+    setAssignForm({ driverId: "", vehicleNumber: "" });
     setAssignModalOpen(true);
   };
   const handleCloseAssignModal = () => {
@@ -190,18 +211,20 @@ const Dashboard = () => {
     e.preventDefault();
     if (!assignForm.driverId || !assignForm.vehicleNumber) {
       if (window.alertify) {
-        window.alertify.error('Please select driver and enter vehicle number');
+        window.alertify.error("Please select driver and enter vehicle number");
       }
       return;
     }
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       // Try to include origin/destination if backend expects them
-      const currentBid = acceptedBids.find(b => (b.bidId || b._id) === assignBidId) || {};
+      const currentBid =
+        acceptedBids.find((b) => (b.bidId || b._id) === assignBidId) || {};
       const parseCityState = (str) => {
-        if (!str || str === '-' || typeof str !== 'string') return { city: '', state: '' };
-        const parts = str.split(',').map(s => s.trim());
-        return { city: parts[0] || '', state: parts[1] || '' };
+        if (!str || str === "-" || typeof str !== "string")
+          return { city: "", state: "" };
+        const parts = str.split(",").map((s) => s.trim());
+        return { city: parts[0] || "", state: parts[1] || "" };
       };
       const originText = resolvePickupLocation(currentBid);
       const destText = resolveDropLocation(currentBid);
@@ -218,26 +241,34 @@ const Dashboard = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
       if (window.alertify) {
-        window.alertify.success('Driver assigned successfully');
+        window.alertify.success("Driver assigned successfully");
       }
       setAssignModalOpen(false);
       setAssignBidId(null);
-      setAssignForm({ driverId: '', vehicleNumber: '' });
+      setAssignForm({ driverId: "", vehicleNumber: "" });
       // refresh accepted bids list
       try {
         const refresh = await axios.get(`${BASE_API_URL}/api/v1/bid/accepted`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAcceptedBids(Array.isArray(refresh.data.acceptedBids) ? refresh.data.acceptedBids : []);
-      } catch (_) { console.error(_); }
+        setAcceptedBids(
+          Array.isArray(refresh.data.acceptedBids)
+            ? refresh.data.acceptedBids
+            : [],
+        );
+      } catch (_) {
+        console.error(_);
+      }
     } catch (err) {
       if (window.alertify) {
-        window.alertify.error(err.response?.data?.message || 'Failed to assign driver');
+        window.alertify.error(
+          err.response?.data?.message || "Failed to assign driver",
+        );
       }
     }
   };
@@ -246,12 +277,15 @@ const Dashboard = () => {
     const fetchAvailableLoads = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${BASE_API_URL}/api/v1/load/available`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${BASE_API_URL}/api/v1/load/available`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
         if (Array.isArray(response.data.loads)) {
           setPendingBids(response.data.loads);
         } else {
@@ -265,11 +299,18 @@ const Dashboard = () => {
     };
     const fetchDrivers = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${BASE_API_URL}/api/v1/driver/my-drivers`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setDrivers(Array.isArray(response.data) ? response.data : (response.data.drivers || []));
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${BASE_API_URL}/api/v1/driver/my-drivers`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        setDrivers(
+          Array.isArray(response.data)
+            ? response.data
+            : response.data.drivers || [],
+        );
       } catch (err) {
         setDrivers([]);
       }
@@ -277,12 +318,15 @@ const Dashboard = () => {
     const fetchAcceptedBids = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${BASE_API_URL}/api/v1/bid/accepted`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${BASE_API_URL}/api/v1/bid/accepted`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
         if (Array.isArray(response.data.acceptedBids)) {
           setAcceptedBids(response.data.acceptedBids);
         } else {
@@ -308,9 +352,26 @@ const Dashboard = () => {
   const bidData = tab === 0 ? pendingBids : acceptedBids;
   const filteredData = bidData.filter((row) =>
     Object.values(row).some((val) =>
-      String(val).toLowerCase().includes(searchTerm.toLowerCase())
-    )
+      String(val).toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
+
+  const totalItems = filteredData.length;
+  const totalPages = Math.max(1, Math.ceil((totalItems || 1) / rowsPerPage));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const pageStart = clampedPage * rowsPerPage;
+  const pageEnd = Math.min(totalItems, pageStart + rowsPerPage);
+  const visibleRows = filteredData.slice(pageStart, pageEnd);
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    const start = Math.max(1, clampedPage + 1 - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (start > 1) pages.push(1, "…");
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) pages.push("…", totalPages);
+    return pages;
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -329,14 +390,22 @@ const Dashboard = () => {
   const handleCloseBidModal = () => {
     setBidModalOpen(false);
     setSelectedLoad(null);
-    setBidForm({ pickupETA: '', dropETA: '', bidAmount: '', message: '', driverName: '', vehicleNumber: '', vehicleType: '' });
+    setBidForm({
+      pickupETA: "",
+      dropETA: "",
+      bidAmount: "",
+      message: "",
+      driverName: "",
+      vehicleNumber: "",
+      vehicleType: "",
+    });
     setBidErrors({});
   };
 
   const handleBidFormChange = (e) => {
     setBidForm({
       ...bidForm,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -352,113 +421,183 @@ const Dashboard = () => {
     if (!bidForm.vehicleType) newErrors.vehicleType = true;
     setBidErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
-      alertify.error('Please fill in all required fields');
+      alertify.error("Please fill in all required fields");
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const bidData = {
         loadId: selectedLoad._id || selectedLoad.loadId,
         rate: parseFloat(bidForm.bidAmount),
         message: bidForm.message,
-        estimatedPickupDate: bidForm.pickupETA.split('T')[0], // Extract date part only
-        estimatedDeliveryDate: bidForm.dropETA.split('T')[0], // Extract date part only
+        estimatedPickupDate: bidForm.pickupETA.split("T")[0], // Extract date part only
+        estimatedDeliveryDate: bidForm.dropETA.split("T")[0], // Extract date part only
         driverName: bidForm.driverName,
-        driverPhone: '', // Always send blank
+        driverPhone: "", // Always send blank
         vehicleNumber: bidForm.vehicleNumber,
-        vehicleType: bidForm.vehicleType
+        vehicleType: bidForm.vehicleType,
       };
 
-      const response = await axios.post(`${BASE_API_URL}/api/v1/bid/place`, bidData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        `${BASE_API_URL}/api/v1/bid/place`,
+        bidData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
       if (response.status === 200 || response.status === 201) {
-        alertify.success('Bid submitted successfully!');
+        alertify.success("Bid submitted successfully!");
         handleCloseBidModal();
         // Refresh the data after successful bid submission
         if (tab === 0) {
           // Refresh pending bids
-          const refreshResponse = await axios.get(`${BASE_API_URL}/api/v1/load/available`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+          const refreshResponse = await axios.get(
+            `${BASE_API_URL}/api/v1/load/available`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
           if (Array.isArray(refreshResponse.data.loads)) {
             setPendingBids(refreshResponse.data.loads);
           }
         }
       }
     } catch (error) {
-      console.error('Error submitting bid:', error);
+      console.error("Error submitting bid:", error);
       if (error.response?.data?.message) {
         alertify.error(error.response.data.message);
       } else {
-        alertify.error('Failed to submit bid. Please try again.');
+        alertify.error("Failed to submit bid. Please try again.");
       }
     }
   };
 
   const exportToCSV = () => {
-    const headers = ['Load ID', 'From', 'To', 'ETA', 'Bid Status'];
-    const csvRows = [headers.join(',')];
+    const sectionName = tab === 0 ? "Pending Bids" : "Accepted Bids";
+    const esc = (val) => {
+      const s = val == null ? "" : String(val);
+      return `"${s.replace(/"/g, '""')}"`;
+    };
 
-    pendingBids.forEach((row) => {
-      const values = [
-        row.loadId,
-        row.from,
-        row.to,
-        row.eta,
-        row.status,
+    let headers = [];
+    let rows = [];
+
+    if (tab === 0) {
+      // Pending Bids
+      headers = [
+        "Load ID",
+        "Shipper Name",
+        "Pickup",
+        "Drop",
+        "Shipment Type",
+        "ETA",
+        "Bid Status",
       ];
-      csvRows.push(values.join(','));
-    });
+      rows = filteredData.map((row) => {
+        const loadId = formatLoadId(row._id || row.loadId);
+        const shipper = row.shipper?.compName || row.shipperName || "";
+        const pickup = resolvePickupLocation(row);
+        const drop = resolveDropLocation(row);
+        const type = row.shipper?.loadType || row.loadType || "";
+        const eta = row.pickupDate
+          ? new Date(row.pickupDate).toLocaleDateString()
+          : row.eta || "";
+        const status = row.status || "Bidding";
+        return [loadId, shipper, pickup, drop, type, eta, status];
+      });
+    } else {
+      // Accepted Bids
+      headers = [
+        "Shipment No",
+        "Pickup Location",
+        "Drop Location",
+        "Pickup Date",
+        "Drop Date",
+        "Status",
+      ];
+      rows = filteredData.map((row) => {
+        const shipmentNo = row.shipmentNumber || "";
+        const pickup = resolvePickupLocation(row);
+        const drop = resolveDropLocation(row);
+        const pickupDate = row.pickupDate
+          ? new Date(row.pickupDate).toLocaleDateString()
+          : "";
+        const dropDate = row.deliveryDate
+          ? new Date(row.deliveryDate).toLocaleDateString()
+          : "";
+        const status = row.status || "";
+        return [shipmentNo, pickup, drop, pickupDate, dropDate, status];
+      });
+    }
 
-    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const lines = [];
+    lines.push(`Section,${sectionName}`);
+    lines.push("");
+    lines.push(headers.map((h) => esc(h)).join(","));
+    rows.forEach((r) => lines.push(r.map(esc).join(",")));
+
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + lines.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'bid_data.csv';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.download = `${sectionName.toLowerCase().replace(/\s+/g, "_")}_${dateStr}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
   };
 
   const handleSendNegotiation = async () => {
     if (!negotiationMessage.trim()) return;
-    
+
     setNegotiationLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const bidId = selectedBidDetails.bidId || selectedBidDetails._id;
-      
-      const response = await axios.put(`${BASE_API_URL}/api/v1/bid/${bidId}/trucker-internal-negotiate`, {
-        message: negotiationMessage
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+
+      const response = await axios.put(
+        `${BASE_API_URL}/api/v1/bid/${bidId}/trucker-internal-negotiate`,
+        {
+          message: negotiationMessage,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
       if (response.data.success) {
-        alertify.success('Message sent');
+        alertify.success("Message sent");
 
-        setNegotiationMessage('');
+        setNegotiationMessage("");
         // Refresh history immediately
-        const historyResponse = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (historyResponse.data.success && historyResponse.data.data?.internalNegotiation) {
+        const historyResponse = await axios.get(
+          `${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (
+          historyResponse.data.success &&
+          historyResponse.data.data?.internalNegotiation
+        ) {
           setNegotiationHistory(historyResponse.data.data);
         }
       }
     } catch (err) {
-      console.error('Error sending message:', err);
-      alertify.error(err.response?.data?.message || 'Failed to send message');
+      console.error("Error sending message:", err);
+      alertify.error(err.response?.data?.message || "Failed to send message");
     } finally {
       setNegotiationLoading(false);
     }
@@ -470,17 +609,24 @@ const Dashboard = () => {
     if (viewDetailsModalOpen && selectedBidDetails) {
       interval = setInterval(async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = localStorage.getItem("token");
           const bidId = selectedBidDetails.bidId || selectedBidDetails._id;
-          const response = await axios.get(`${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const response = await axios.get(
+            `${BASE_API_URL}/api/v1/bid/${bidId}/internal-negotiation-thread`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
 
-          if (response.data.success && response.data.data?.internalNegotiation) {
-            setNegotiationHistory(prev => {
-              const newHistory = response.data.data.internalNegotiation.history || [];
+          if (
+            response.data.success &&
+            response.data.data?.internalNegotiation
+          ) {
+            setNegotiationHistory((prev) => {
+              const newHistory =
+                response.data.data.internalNegotiation.history || [];
               const prevHistory = prev?.internalNegotiation?.history || [];
-              
+
               if (newHistory.length > prevHistory.length) {
                 // New messages found
                 const newMessages = newHistory.slice(prevHistory.length);
@@ -492,7 +638,7 @@ const Dashboard = () => {
             });
           }
         } catch (err) {
-          console.error('Error polling negotiation history:', err);
+          console.error("Error polling negotiation history:", err);
         }
       }, 3000);
     }
@@ -501,561 +647,719 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Typography variant="h5" fontWeight={700}>
-          Bid Overview
-        </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-         <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="outlined"
+      <div className="mb-2 text-2xl font-semibold text-gray-700">
+        Bid Overview
+      </div>
+      <div className="mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(0);
+              }}
+              className="w-full h-11 rounded-md border border-gray-200 pl-10 pr-3 text-lg outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
             onClick={exportToCSV}
-            sx={{
-              borderRadius: 2,
-              fontSize: '0.75rem',
-              px: 2,
-              py: 0.8,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: '#1976d2',
-              borderColor: '#1976d2',
-              '&:hover': {
-                borderColor: '#0d47a1',
-                color: '#0d47a1',
-              },
-            }}
+            className="h-11 px-6 rounded-md border border-blue-600 text-blue-600 text-base font-medium cursor-pointer hover:bg-blue-600 hover:text-white"
           >
             Export CSV
-          </Button>
-        </Stack>
-      </Box>
+          </button>
+        </div>
+      </div>
 
       <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab label="Pending Bids" />
-        <Tab label="Accepted Bids" />
+        <Tab label="Pending Bids" sx={{ fontWeight: 700 }} />
+        <Tab label="Accepted Bids" sx={{ fontWeight: 700 }} />
       </Tabs>
       {tab === 0 && (
         <Box>
-          {/* Pending Bids Table */}
-          <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: (themeConfig.table?.headerBg || '#f0f4f8') }}>
-                  <TableCell sx={{ fontWeight: 600 }}>Load ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>shipper Name</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Pickup</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Drop</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Shipment Type</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>ETA</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Bid Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">Loading...</TableCell>
-                  </TableRow>
-                ) : filteredData.length === 0 ? (
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                      <TableCell><Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 1 }} /></TableCell>
-                    </TableRow>
-                  ))
-                ) : pendingBids.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">No available loads found</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredData
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, i) => (
-                      <TableRow
-                        key={row._id || i}
-                        hover
-                        sx={{ transition: '0.3s', '&:hover': { backgroundColor: '#e3f2fd' } }}
+          <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <div className="overflow-x-auto p-4">
+              <table className="min-w-full border-separate border-spacing-y-4">
+                <thead>
+                  <tr className="text-left bg-slate-100">
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">
+                      Load ID
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Shipper Name
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Pickup
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Drop
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Shipment Type
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      ETA
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">
+                      Bid Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td
+                        className="px-4 py-6 text-center text-sm text-slate-500"
+                        colSpan={7}
                       >
-                        <TableCell>{formatLoadId(row._id || row.loadId)}</TableCell>
-                        <TableCell>{row.shipper?.compName || row.shipperName || '-'}</TableCell>
-                        <TableCell>
-                          {row.origins && row.origins.length > 0 
-                            ? `${row.origins[0].city || ''}${row.origins[0].state ? `, ${row.origins[0].state}` : ''}` 
-                            : (row.origin?.city || row.from || '-')
-                          }
-                        </TableCell>
-                        <TableCell>
-                          {row.destinations && row.destinations.length > 0 
-                            ? `${row.destinations[0].city || ''}${row.destinations[0].state ? `, ${row.destinations[0].state}` : ''}` 
-                            : (row.destination?.city || row.to || '-')
-                          }
-                        </TableCell>
-                                                <TableCell>{row.shipper?.loadType || row.loadType || '-'}</TableCell>
+                        Loading…
+                      </td>
+                    </tr>
+                  ) : totalItems === 0 ? (
+                    <tr>
+                      <td
+                        className="px-4 py-6 text-center text-sm text-slate-500"
+                        colSpan={7}
+                      >
+                        No available loads found
+                      </td>
+                    </tr>
+                  ) : (
+                    visibleRows.map((row, i) => (
+                      <tr key={row._id || i} className="hover:bg-slate-50">
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
+                          {formatLoadId(row._id || row.loadId)}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
+                          <div className="relative group max-w-[160px]">
+                            <span className="block truncate">
+                              {row.shipper?.compName || row.shipperName || "-"}
+                            </span>
 
-                        <TableCell>{row.pickupDate ? new Date(row.pickupDate).toLocaleDateString() : (row.eta || '-')}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                            startIcon={<Send />}
+                            {/* Tooltip */}
+                            {(row.shipper?.compName || row.shipperName) && (
+                              <div
+                                className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-sm px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50"
+                              >
+                                {row.shipper?.compName || row.shipperName}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.origins && row.origins.length > 0
+                            ? `${row.origins[0].city || ""}${row.origins[0].state ? `, ${row.origins[0].state}` : ""}`
+                            : row.origin?.city || row.from || "-"}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.destinations && row.destinations.length > 0
+                            ? `${row.destinations[0].city || ""}${row.destinations[0].state ? `, ${row.destinations[0].state}` : ""}`
+                            : row.destination?.city || row.to || "-"}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.shipper?.loadType || row.loadType || "-"}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.pickupDate
+                            ? new Date(row.pickupDate).toLocaleDateString()
+                            : row.eta || "-"}
+                        </td>
+                        <td className="px-4 py-4 rounded-r-xl border-t border-b border-r border-gray-200">
+                          <button
                             onClick={() => handleBidNow(row)}
-                            sx={{ textTransform: 'none', fontSize: '0.75rem', px: 2 }}
+                            className="h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
                           >
                             Bid Now
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                          </button>
+                        </td>
+                      </tr>
                     ))
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              component="div"
-              count={filteredData.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 15, 20]}
-            />
-          </Paper>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between pr-40">
+            <div className="flex items-center gap-3 text-sm text-slate-600">
+              <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} bids`}</span>
+            </div>
+            <div className="flex items-center gap-2 mr-8">
+              <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+                <span>Rows per page</span>
+                <select
+                  value={rowsPerPage}
+                  onChange={handleChangeRowsPerPage}
+                  className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </label>
+              <button
+                onClick={() => setPage(Math.max(0, clampedPage - 1))}
+                disabled={clampedPage === 0}
+                className={`h-8 px-3 text-base ${
+                  clampedPage === 0
+                    ? "text-slate-400 rounded-full cursor-not-allowed"
+                    : "text-slate-900 font-semibold cursor-pointer rounded-md"
+                }`}
+              >
+                Previous
+              </button>
+              {getPageNumbers().map((num, idx) =>
+                num === "…" ? (
+                  <span key={`e-${idx}`} className="px-1 text-gray-900">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={num}
+                    onClick={() => setPage(Number(num) - 1)}
+                    className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${
+                      num === clampedPage + 1
+                        ? "border border-gray-900"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() =>
+                  setPage(Math.min(totalPages - 1, clampedPage + 1))
+                }
+                disabled={clampedPage >= totalPages - 1}
+                className={`h-8 px-3 text-base ${
+                  clampedPage >= totalPages - 1
+                    ? "text-slate-400 rounded-full cursor-not-allowed"
+                    : "text-slate-900 font-semibold cursor-pointer rounded-md"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </Box>
       )}
       {tab === 1 && (
         <Box>
-          {/* Accepted Bids Table (API integration to be added) */}
-          <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: (themeConfig.table?.headerBg || '#f0f4f8') }}>
-                  <TableCell sx={{ fontWeight: 600 }}>Shipment No</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Pickup Location</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Drop Location</TableCell>
-                   {/* <TableCell sx={{ fontWeight: 600 }}>Shipment Type</TableCell> */}
-                  <TableCell sx={{ fontWeight: 600 }}>Pickup Date</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Drop Date</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">Loading...</TableCell>
-                  </TableRow>
-                ) : filteredData.length === 0 ? (
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                      {/* <TableCell><Skeleton variant="text" width={100} /></TableCell> */}
-                      <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                      <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                      <TableCell><Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1 }} /></TableCell>
-                      <TableCell><Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 1 }} /></TableCell>
-                    </TableRow>
-                  ))
-                ) : acceptedBids.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">No accepted bids found</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredData
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, i) => (
-                      <TableRow
-                        key={row._id || i}
-                        hover
-                        sx={{ transition: '0.3s', '&:hover': { backgroundColor: '#e3f2fd' } }}
+          <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <div className="overflow-x-auto p-4">
+              <table className="min-w-full border-separate border-spacing-y-4">
+                <thead>
+                  <tr className="text-left bg-slate-100">
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">
+                      Shipment No
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Pickup Location
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Drop Location
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Pickup Date
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Drop Date
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td
+                        className="px-4 py-6 text-center text-sm text-slate-500"
+                        colSpan={7}
                       >
-                        <TableCell>{row.shipmentNumber}</TableCell>
-                        <TableCell>{resolvePickupLocation(row)}</TableCell>
-                        <TableCell>{resolveDropLocation(row)}</TableCell>
-                        {/* <TableCell>{row.loadType}</TableCell> */}
-                        <TableCell>{row.pickupDate ? new Date(row.pickupDate).toLocaleDateString() : '-'}</TableCell>
-                        <TableCell>{row.deliveryDate ? new Date(row.deliveryDate).toLocaleDateString() : '-'}</TableCell>
-                        <TableCell>
-                          <Chip label={row.status} color="success" />
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                            sx={{ textTransform: 'none', fontSize: '0.75rem', px: 2, mr: 1, position: 'relative' }}
-                            onClick={() => handleViewDetails(row)}
-                          >
-                            View Details
-                            {unreadBids.has(row._id || row.bidId) && (
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    top: -4,
-                                    right: -4,
-                                    width: 10,
-                                    height: 10,
-                                    bgcolor: 'error.main',
-                                    borderRadius: '50%',
-                                    border: '2px solid white'
-                                  }}
-                                />
-                            )}
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="success"
-                            sx={{ textTransform: 'none', fontSize: '0.75rem', px: 2 }}
-                            onClick={() => handleAssignDriver(row)}
-                          >
-                            Assign Driver
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                        Loading…
+                      </td>
+                    </tr>
+                  ) : totalItems === 0 ? (
+                    <tr>
+                      <td
+                        className="px-4 py-6 text-center text-sm text-slate-500"
+                        colSpan={7}
+                      >
+                        No accepted bids found
+                      </td>
+                    </tr>
+                  ) : (
+                    visibleRows.map((row, i) => (
+                      <tr key={row._id || i} className="hover:bg-slate-50">
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
+                          {row.shipmentNumber}
+                        </td>
+                        <td className="px-5 py-4px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {resolvePickupLocation(row)}
+                        </td>
+                        <td className="px-5 py-4px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {resolveDropLocation(row)}
+                        </td>
+                        <td className="px-5 py-4px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.pickupDate
+                            ? new Date(row.pickupDate).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-5 py-4px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          {row.deliveryDate
+                            ? new Date(row.deliveryDate).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                          <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold border bg-green-50 text-green-700 border-green-200">
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 rounded-r-xl border-t border-b border-r border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleViewDetails(row)}
+                              className="relative h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
+                            >
+                              View Details
+                              {unreadBids.has(row._id || row.bidId) && (
+                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full ring-2 ring-white"></span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleAssignDriver(row)}
+                              className="h-8 px-3 rounded-md border border-green-600 text-green-600 text-base cursor-pointer font-medium hover:bg-green-600 hover:text-white"
+                            >
+                              Assign Driver
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
                     ))
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              component="div"
-              count={filteredData.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 15, 20]}
-            />
-          </Paper>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between pr-40">
+            <div className="flex items-center gap-3 text-sm text-slate-600">
+              <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} bids`}</span>
+            </div>
+            <div className="flex items-center gap-2 mr-8">
+              <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+                <span>Rows per page</span>
+                <select
+                  value={rowsPerPage}
+                  onChange={handleChangeRowsPerPage}
+                  className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </label>
+              <button
+                onClick={() => setPage(Math.max(0, clampedPage - 1))}
+                disabled={clampedPage === 0}
+                className={`h-8 px-3 text-base ${
+                  clampedPage === 0
+                    ? "text-slate-400 rounded-full cursor-not-allowed"
+                    : "text-slate-900 font-semibold cursor-pointer rounded-md"
+                }`}
+              >
+                Previous
+              </button>
+              {getPageNumbers().map((num, idx) =>
+                num === "…" ? (
+                  <span key={`e-${idx}`} className="px-1 text-gray-900">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={num}
+                    onClick={() => setPage(Number(num) - 1)}
+                    className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${
+                      num === clampedPage + 1
+                        ? "border border-gray-900"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() =>
+                  setPage(Math.min(totalPages - 1, clampedPage + 1))
+                }
+                disabled={clampedPage >= totalPages - 1}
+                className={`h-8 px-3 text-base ${
+                  clampedPage >= totalPages - 1
+                    ? "text-slate-400 rounded-full cursor-not-allowed"
+                    : "text-slate-900 font-semibold cursor-pointer rounded-md"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </Box>
       )}
 
       {/* Bid Modal */}
-      <Dialog open={bidModalOpen} onClose={handleCloseBidModal} maxWidth="md" fullWidth PaperProps={{
-        sx: {
-          borderRadius: 3,
-          boxShadow: 8,
-          background: '#fff',
-        }
-      }}>
-        <DialogTitle sx={{ textAlign: 'left', color: headerTextColor }}>
+      <Dialog
+        open={bidModalOpen}
+        onClose={handleCloseBidModal}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: 8,
+            background: "#fff",
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: "left", color: "#fff" }}>
           Place Your Bid
         </DialogTitle>
-        <DialogContent sx={{ px: 4, py: 3, background: '#fff' }}>
+        <DialogContent sx={{ px: 4, py: 3, background: "#fff" }}>
           {selectedLoad && (
             <Box component="form" onSubmit={handleBidSubmit}>
               {/* Load Details Table */}
-              <Paper elevation={0} sx={{
-                p: 2,
-                mb: 3,
-                borderRadius: 2,
-                background: '#f8fafc',
-                boxShadow: '0 1px 6px rgba(25, 118, 210, 0.06)'
-              }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2,
+                  background: "#f8fafc",
+                  boxShadow: "0 1px 6px rgba(25, 118, 210, 0.06)",
+                }}
+              >
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                       <TableCell sx={{ fontWeight: 600 }}>Pickup</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Drop</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Weight</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Commodity</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Vehicle Type</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>
+                        Vehicle Type
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
                       <TableCell>
-                        {selectedLoad.origins && selectedLoad.origins.length > 0 
-                          ? `${selectedLoad.origins[0].city || ''}${selectedLoad.origins[0].state ? `, ${selectedLoad.origins[0].state}` : ''}` 
-                          : (selectedLoad.origin?.city || '-')
-                        }
+                        {selectedLoad.origins && selectedLoad.origins.length > 0
+                          ? `${selectedLoad.origins[0].city || ""}${selectedLoad.origins[0].state ? `, ${selectedLoad.origins[0].state}` : ""}`
+                          : selectedLoad.origin?.city || "-"}
                       </TableCell>
                       <TableCell>
-                        {selectedLoad.destinations && selectedLoad.destinations.length > 0 
-                          ? `${selectedLoad.destinations[0].city || ''}${selectedLoad.destinations[0].state ? `, ${selectedLoad.destinations[0].state}` : ''}` 
-                          : (selectedLoad.destination?.city || '-')
-                        }
+                        {selectedLoad.destinations &&
+                        selectedLoad.destinations.length > 0
+                          ? `${selectedLoad.destinations[0].city || ""}${selectedLoad.destinations[0].state ? `, ${selectedLoad.destinations[0].state}` : ""}`
+                          : selectedLoad.destination?.city || "-"}
                       </TableCell>
-                      <TableCell>{selectedLoad.weight ? `${selectedLoad.weight} Kg` : '-'}</TableCell>
-                      <TableCell>{selectedLoad.commodity || '-'}</TableCell>
-                      <TableCell>{selectedLoad.vehicleType || '-'}</TableCell>
+                      <TableCell>
+                        {selectedLoad.weight
+                          ? `${selectedLoad.weight} Kg`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>{selectedLoad.commodity || "-"}</TableCell>
+                      <TableCell>{selectedLoad.vehicleType || "-"}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </Paper>
 
-                                            {/* Bid Form */}
-               <Box sx={{ mt: 3 }}>
-                 {/* Row 1: Pickup ETA, Drop ETA, Bid Amount */}
-                 <Grid container spacing={3} sx={{ mb: 3 }}>
-                   <Grid item xs={12} md={4}>
-                     <TextField
-                       label="Pickup ETA"
-                       name="pickupETA"
-                       type="datetime-local"
-                       value={bidForm.pickupETA}
-                       onChange={handleBidFormChange}
-                       fullWidth
-                       required
-                       InputLabelProps={{ shrink: true }}
-                       error={!!bidErrors.pickupETA}
-                       sx={{
-                         '& .MuiOutlinedInput-root': {
-                           borderRadius: 2,
-                           backgroundColor: '#fafafa',
-                           '&:hover': {
-                             backgroundColor: '#f5f5f5',
-                           },
-                           '&.Mui-focused': {
-                             backgroundColor: '#fff',
-                           },
-                         },
-                         '& .MuiInputLabel-root': {
-                           fontWeight: 500,
-                           color: '#666',
-                         },
-                       }}
-                     />
-                   </Grid>
-                   <Grid item xs={12} md={4}>
-                     <TextField
-                       label="Drop ETA"
-                       name="dropETA"
-                       type="datetime-local"
-                       value={bidForm.dropETA}
-                       onChange={handleBidFormChange}
-                       fullWidth
-                       required
-                       InputLabelProps={{ shrink: true }}
-                       error={!!bidErrors.dropETA}
-                       sx={{
-                         '& .MuiOutlinedInput-root': {
-                           borderRadius: 2,
-                           backgroundColor: '#fafafa',
-                           '&:hover': {
-                             backgroundColor: '#f5f5f5',
-                           },
-                           '&.Mui-focused': {
-                             backgroundColor: '#fff',
-                           },
-                         },
-                         '& .MuiInputLabel-root': {
-                           fontWeight: 500,
-                           color: '#666',
-                         },
-                       }}
-                     />
-                   </Grid>
-                   <Grid item xs={12} md={4}>
-                     <TextField
-                       label="Bid Amount"
-                       name="bidAmount"
-                       type="number"
-                       value={bidForm.bidAmount}
-                       onChange={handleBidFormChange}
-                       fullWidth
-                       required
-                       InputProps={{
-                         startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                       }}
-                       error={!!bidErrors.bidAmount}
-                       sx={{
-                         '& .MuiOutlinedInput-root': {
-                           borderRadius: 2,
-                           backgroundColor: '#fafafa',
-                           '&:hover': {
-                             backgroundColor: '#f5f5f5',
-                           },
-                           '&.Mui-focused': {
-                             backgroundColor: '#fff',
-                           },
-                         },
-                         '& .MuiInputLabel-root': {
-                           fontWeight: 500,
-                           color: '#666',
-                         },
-                       }}
-                     />
-                   </Grid>
-                 </Grid>
-
-                 {/* Divider */}
-                 <Box sx={{ 
-                   borderBottom: '2px solid #e0e0e0', 
-                   mb: 3,
-                   mx: -2,
-                   opacity: 0.6
-                 }} />
-
-                                   {/* Row 2: Driver Name, Vehicle Number, Vehicle Type */}
-                  <Grid container spacing={3} sx={{ mb: 3 }}>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="Driver Name"
-                        name="driverName"
-                        value={bidForm.driverName}
-                        onChange={handleBidFormChange}
-                        fullWidth
-                        required
-                        error={!!bidErrors.driverName}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            backgroundColor: '#fafafa',
-                            '&:hover': {
-                              backgroundColor: '#f5f5f5',
-                            },
-                            '&.Mui-focused': {
-                              backgroundColor: '#fff',
-                            },
+              {/* Bid Form */}
+              <Box sx={{ mt: 3 }}>
+                {/* Row 1: Pickup ETA, Drop ETA, Bid Amount */}
+                <Grid container spacing={3} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Pickup ETA"
+                      name="pickupETA"
+                      type="datetime-local"
+                      value={bidForm.pickupETA}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      InputLabelProps={{ shrink: true }}
+                      error={!!bidErrors.pickupETA}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
                           },
-                          '& .MuiInputLabel-root': {
-                            fontWeight: 500,
-                            color: '#666',
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
                           },
-                        }}
-                      />
-                    </Grid>
-                                         <Grid item xs={12} md={6}>
-                       <TextField
-                         label="Vehicle Number"
-                         name="vehicleNumber"
-                         value={bidForm.vehicleNumber}
-                         onChange={handleBidFormChange}
-                         fullWidth
-                         required
-                         error={!!bidErrors.vehicleNumber}
-                         sx={{
-                           '& .MuiOutlinedInput-root': {
-                             borderRadius: 2,
-                             backgroundColor: '#fafafa',
-                             '&:hover': {
-                               backgroundColor: '#f5f5f5',
-                             },
-                             '&.Mui-focused': {
-                               backgroundColor: '#fff',
-                             },
-                           },
-                           '& .MuiInputLabel-root': {
-                             fontWeight: 500,
-                             color: '#666',
-                           },
-                         }}
-                       />
-                     </Grid>
-                     <Grid item xs={12} md={6}>
-                       <TextField
-                         label="Vehicle Type"
-                         name="vehicleType"
-                         value={bidForm.vehicleType}
-                         onChange={handleBidFormChange}
-                         fullWidth
-                         required
-                         error={!!bidErrors.vehicleType}
-                         sx={{
-                           '& .MuiOutlinedInput-root': {
-                             borderRadius: 2,
-                             backgroundColor: '#fafafa',
-                             '&:hover': {
-                               backgroundColor: '#f5f5f5',
-                             },
-                             '&.Mui-focused': {
-                               backgroundColor: '#fff',
-                             },
-                           },
-                           '& .MuiInputLabel-root': {
-                             fontWeight: 500,
-                             color: '#666',
-                           },
-                         }}
-                       />
-                     </Grid>
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
                   </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Drop ETA"
+                      name="dropETA"
+                      type="datetime-local"
+                      value={bidForm.dropETA}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      InputLabelProps={{ shrink: true }}
+                      error={!!bidErrors.dropETA}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Bid Amount"
+                      name="bidAmount"
+                      type="number"
+                      value={bidForm.bidAmount}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">$</InputAdornment>
+                        ),
+                      }}
+                      error={!!bidErrors.bidAmount}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
 
-                 {/* Divider */}
-                 <Box sx={{ 
-                   borderBottom: '2px solid #e0e0e0', 
-                   mb: 3,
-                   mx: -2,
-                   opacity: 0.6
-                 }} />
+                {/* Divider */}
+                <Box
+                  sx={{
+                    borderBottom: "2px solid #e0e0e0",
+                    mb: 3,
+                    mx: -2,
+                    opacity: 0.6,
+                  }}
+                />
 
-                 {/* Row 3: Message */}
-                 <Grid container spacing={3}>
-                   <Grid item xs={12}>
-                     <TextField
-                       label="Message"
-                       name="message"
-                       value={bidForm.message || ''}
-                       onChange={handleBidFormChange}
-                       fullWidth
-                       multiline
-                       rows={2}
-                       placeholder="Write a message for the shipper..."
-                       error={!!bidErrors.message}
-                       sx={{
-                         '& .MuiOutlinedInput-root': {
-                           borderRadius: 2,
-                           backgroundColor: '#fafafa',
-                           '&:hover': {
-                             backgroundColor: '#f5f5f5',
-                           },
-                           '&.Mui-focused': {
-                             backgroundColor: '#fff',
-                           },
-                         },
-                         '& .MuiInputLabel-root': {
-                           fontWeight: 500,
-                           color: '#666',
-                         },
-                         '& .MuiInputBase-input': {
-                           padding: '16px 14px',
-                         },
-                       }}
-                     />
-                   </Grid>
-                 </Grid>
-               </Box>
+                {/* Row 2: Driver Name, Vehicle Number, Vehicle Type */}
+                <Grid container spacing={3} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Driver Name"
+                      name="driverName"
+                      value={bidForm.driverName}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      error={!!bidErrors.driverName}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Vehicle Number"
+                      name="vehicleNumber"
+                      value={bidForm.vehicleNumber}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      error={!!bidErrors.vehicleNumber}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Vehicle Type"
+                      name="vehicleType"
+                      value={bidForm.vehicleType}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      required
+                      error={!!bidErrors.vehicleType}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* Divider */}
+                <Box
+                  sx={{
+                    borderBottom: "2px solid #e0e0e0",
+                    mb: 3,
+                    mx: -2,
+                    opacity: 0.6,
+                  }}
+                />
+
+                {/* Row 3: Message */}
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Message"
+                      name="message"
+                      value={bidForm.message || ""}
+                      onChange={handleBidFormChange}
+                      fullWidth
+                      multiline
+                      rows={2}
+                      placeholder="Write a message for the shipper..."
+                      error={!!bidErrors.message}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          backgroundColor: "#fafafa",
+                          "&:hover": {
+                            backgroundColor: "#f5f5f5",
+                          },
+                          "&.Mui-focused": {
+                            backgroundColor: "#fff",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontWeight: 500,
+                          color: "#666",
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "16px 14px",
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 3, justifyContent: 'center', gap: 2, background: '#fff' }}>
+        <DialogActions
+          sx={{ p: 3, justifyContent: "center", gap: 2, background: "#fff" }}
+        >
           <Button
             onClick={handleCloseBidModal}
             variant="outlined"
-            sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f' }}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: "#ffff",
+              color: "#d32f2f",
+              textTransform: "none",
+              px: 4,
+              borderColor: "#d32f2f",
+              "&:hover": {
+                color: "#fff",
+                backgroundColor: "#d32f2f",
+              },
+            }}
           >
             Cancel
           </Button>
@@ -1064,7 +1368,12 @@ const Dashboard = () => {
             type="submit"
             variant="contained"
             color="primary"
-           sx={{ borderRadius: 3, textTransform: 'none', px: 4 }}
+            sx={{
+              borderRadius: 3,
+              textTransform: "none",
+              px: 4,
+              color: "#fff",
+            }}
           >
             Submit Bid
           </Button>
@@ -1072,105 +1381,169 @@ const Dashboard = () => {
       </Dialog>
 
       {/* View Details Modal */}
-      <Dialog 
-        open={viewDetailsModalOpen} 
-        onClose={handleCloseViewDetailsModal} 
-        maxWidth="lg" 
+      <Dialog
+        open={viewDetailsModalOpen}
+        onClose={handleCloseViewDetailsModal}
+        maxWidth="lg"
         fullWidth
         PaperProps={{
           sx: {
             borderRadius: 2,
-            maxHeight: '75vh',
-            background: '#ffffff',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-          }
+            maxHeight: "75vh",
+            background: "#ffffff",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+            display: "flex",
+            flexDirection: "column",
+          },
         }}
       >
-        <DialogTitle sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          pb: 2,
-          pt: 2,
-          px: 3,
-          background: brand,
-          color: headerTextColor,
-          borderRadius: '8px 8px 0 0',
-          minHeight: 64
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Receipt sx={{ fontSize: 28, color: headerTextColor }} />
-            <Typography variant="h5" fontWeight={600} color={headerTextColor}>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pb: 2,
+            pt: 2,
+            px: 3,
+            background: brand,
+            color: headerTextColor,
+            borderRadius: "8px 8px 0 0",
+            minHeight: 64,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Receipt sx={{ fontSize: 28, color: "white" }} />
+            <Typography variant="h5" fontWeight={600} color="white">
               Bid Details
             </Typography>
           </Box>
           <Button
             onClick={handleCloseViewDetailsModal}
             sx={{
-              color: 'white',
-              minWidth: 'auto',
-              '&:hover': {
-                background: 'rgba(255, 255, 255, 0.1)',
-              }
+              color: "white",
+              minWidth: "auto",
+              "&:hover": {
+                background: "rgba(255, 255, 255, 0.1)",
+              },
             }}
           >
-            ✕
+            <CloseIcon sx={{ fontSize: 26, fontWeight: 700 }} />
           </Button>
         </DialogTitle>
-        
-        <DialogContent sx={{ pt: 2, overflowY: 'auto', flex: 1 }}>
+
+        <DialogContent sx={{ pt: 2, overflowY: "auto", flex: 1 }}>
           {loadingDetails ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 4,
+              }}
+            >
               <Typography>Loading bid details...</Typography>
             </Box>
           ) : selectedBidDetails ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {/* Basic Information Card */}
-              <Paper elevation={0} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, background: '#e3f2fd' }}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: 1, background: '#1976d2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.5,
+                    background: "#e3f2fd",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 1,
+                      background: "#1976d2",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
                     i
                   </Box>
-                  <Typography variant="h6" fontWeight={700} color="#0d47a1">Basic Information</Typography>
+                  <Typography variant="h6" fontWeight={700} color="#0d47a1">
+                    Basic Information
+                  </Typography>
                 </Box>
                 <Box sx={{ p: 2 }}>
-                  <Table size="small" sx={{ '& td, & th': { border: 0, py: 1.2 } }}>
+                  <Table
+                    size="small"
+                    sx={{ "& td, & th": { border: 0, py: 1.2 } }}
+                  >
                     <TableBody>
                       <TableRow>
-                        <TableCell sx={{ width: 220, color: 'text.secondary' }}>Shipment Number</TableCell>
-                        <TableCell sx={{ width: 80, color: '#9e9e9e' }}>-----</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.shipmentNumber || 'N/A'}</TableCell>
+                        <TableCell sx={{ width: 220, color: "text.secondary" }}>
+                          Shipment Number
+                        </TableCell>
+                        <TableCell sx={{ width: 80, color: "#9e9e9e" }}>
+                          -----
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          {selectedBidDetails.shipmentNumber || "N/A"}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell sx={{ color: 'text.secondary' }}>Status</TableCell>
-                        <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
+                        <TableCell sx={{ color: "text.secondary" }}>
+                          Status
+                        </TableCell>
+                        <TableCell sx={{ color: "#9e9e9e" }}>-----</TableCell>
                         <TableCell>
-                          <Chip 
-                            label={selectedBidDetails.status || 'Accepted'} 
+                          <Chip
+                            label={selectedBidDetails.status || "Accepted"}
                             size="small"
-                            sx={{ 
-                              backgroundColor: '#4caf50',
-                              color: '#fff',
-                              fontWeight: 600,
-                              fontSize: 11
+                            sx={{
+                              backgroundColor: "#dcfce7", // light green bg
+                              "& .MuiChip-label": {
+                                color: "#15803d", // dark green text
+                                fontWeight: 600,
+                                fontSize: 11,
+                              },
                             }}
                           />
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell sx={{ color: 'text.secondary' }}>Pickup Date</TableCell>
-                        <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
+                        <TableCell sx={{ color: "text.secondary" }}>
+                          Pickup Date
+                        </TableCell>
+                        <TableCell sx={{ color: "#9e9e9e" }}>-----</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>
-                          {selectedBidDetails.pickupDate ? new Date(selectedBidDetails.pickupDate).toLocaleDateString() : 'N/A'}
+                          {selectedBidDetails.pickupDate
+                            ? new Date(
+                                selectedBidDetails.pickupDate,
+                              ).toLocaleDateString()
+                            : "N/A"}
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell sx={{ color: 'text.secondary' }}>Delivery Date</TableCell>
-                        <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
+                        <TableCell sx={{ color: "text.secondary" }}>
+                          Delivery Date
+                        </TableCell>
+                        <TableCell sx={{ color: "#9e9e9e" }}>-----</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>
-                          {selectedBidDetails.deliveryDate ? new Date(selectedBidDetails.deliveryDate).toLocaleDateString() : 'N/A'}
+                          {selectedBidDetails.deliveryDate
+                            ? new Date(
+                                selectedBidDetails.deliveryDate,
+                              ).toLocaleDateString()
+                            : "N/A"}
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -1179,25 +1552,68 @@ const Dashboard = () => {
               </Paper>
 
               {/* Shipment Information Card */}
-              <Paper elevation={0} sx={{ border: '1px solid #c8e6c9', borderRadius: 2, overflow: 'hidden' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, background: '#e8f5e9' }}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: 1, background: '#2e7d32', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: "1px solid #c8e6c9",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.5,
+                    background: "#e8f5e9",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 1,
+                      background: "#2e7d32",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
                     📍
                   </Box>
-                  <Typography variant="h6" fontWeight={700} color="#1b5e20">Shipment Information</Typography>
+                  <Typography variant="h6" fontWeight={700} color="#1b5e20">
+                    Shipment Information
+                  </Typography>
                 </Box>
                 <Box sx={{ p: 2 }}>
-                  <Table size="small" sx={{ '& td, & th': { border: 0, py: 1.2 } }}>
+                  <Table
+                    size="small"
+                    sx={{ "& td, & th": { border: 0, py: 1.2 } }}
+                  >
                     <TableBody>
                       <TableRow>
-                        <TableCell sx={{ width: 220, color: 'text.secondary' }}>Pickup Location</TableCell>
-                        <TableCell sx={{ width: 80, color: '#9e9e9e' }}>-----</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>{resolvePickupLocation(selectedBidDetails)}</TableCell>
+                        <TableCell sx={{ width: 220, color: "text.secondary" }}>
+                          Pickup Location
+                        </TableCell>
+                        <TableCell sx={{ width: 80, color: "#9e9e9e" }}>
+                          -----
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          {resolvePickupLocation(selectedBidDetails)}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell sx={{ color: 'text.secondary' }}>Drop Location</TableCell>
-                        <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>{resolveDropLocation(selectedBidDetails)}</TableCell>
+                        <TableCell sx={{ color: "text.secondary" }}>
+                          Drop Location
+                        </TableCell>
+                        <TableCell sx={{ color: "#9e9e9e" }}>-----</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          {resolveDropLocation(selectedBidDetails)}
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -1205,36 +1621,91 @@ const Dashboard = () => {
               </Paper>
 
               {/* Load Details Card */}
-              {(selectedBidDetails.weight || selectedBidDetails.commodity || selectedBidDetails.vehicleType) && (
-                <Paper elevation={0} sx={{ border: '1px solid #b2dfdb', borderRadius: 2, overflow: 'hidden' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, background: '#e0f2f1' }}>
-                    <Box sx={{ width: 32, height: 32, borderRadius: 1, background: '#00897b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              {(selectedBidDetails.weight ||
+                selectedBidDetails.commodity ||
+                selectedBidDetails.vehicleType) && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: "1px solid #b2dfdb",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      px: 2,
+                      py: 1.5,
+                      background: "#e0f2f1",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1,
+                        background: "#00897b",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                      }}
+                    >
                       📦
                     </Box>
-                    <Typography variant="h6" fontWeight={700} color="#00695c">Load Details</Typography>
+                    <Typography variant="h6" fontWeight={700} color="#00695c">
+                      Load Details
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 2 }}>
-                    <Table size="small" sx={{ '& td, & th': { border: 0, py: 1.2 } }}>
+                    <Table
+                      size="small"
+                      sx={{ "& td, & th": { border: 0, py: 1.2 } }}
+                    >
                       <TableBody>
                         {selectedBidDetails.weight && (
                           <TableRow>
-                            <TableCell sx={{ width: 220, color: 'text.secondary' }}>Weight</TableCell>
-                            <TableCell sx={{ width: 80, color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.weight} Kg</TableCell>
+                            <TableCell
+                              sx={{ width: 220, color: "text.secondary" }}
+                            >
+                              Weight
+                            </TableCell>
+                            <TableCell sx={{ width: 80, color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.weight} Kg
+                            </TableCell>
                           </TableRow>
                         )}
                         {selectedBidDetails.commodity && (
                           <TableRow>
-                            <TableCell sx={{ color: 'text.secondary' }}>Commodity</TableCell>
-                            <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.commodity}</TableCell>
+                            <TableCell sx={{ color: "text.secondary" }}>
+                              Commodity
+                            </TableCell>
+                            <TableCell sx={{ color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.commodity}
+                            </TableCell>
                           </TableRow>
                         )}
                         {selectedBidDetails.vehicleType && (
                           <TableRow>
-                            <TableCell sx={{ color: 'text.secondary' }}>Vehicle Type</TableCell>
-                            <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.vehicleType}</TableCell>
+                            <TableCell sx={{ color: "text.secondary" }}>
+                              Vehicle Type
+                            </TableCell>
+                            <TableCell sx={{ color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.vehicleType}
+                            </TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -1244,36 +1715,91 @@ const Dashboard = () => {
               )}
 
               {/* Driver Information Card */}
-              {(selectedBidDetails.driverName || selectedBidDetails.driverPhone || selectedBidDetails.vehicleNumber) && (
-                <Paper elevation={0} sx={{ border: '1px solid #ce93d8', borderRadius: 2, overflow: 'hidden' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, background: '#f3e5f5' }}>
-                    <Box sx={{ width: 32, height: 32, borderRadius: 1, background: '#6a1b9a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              {(selectedBidDetails.driverName ||
+                selectedBidDetails.driverPhone ||
+                selectedBidDetails.vehicleNumber) && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: "1px solid #ce93d8",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      px: 2,
+                      py: 1.5,
+                      background: "#f3e5f5",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1,
+                        background: "#6a1b9a",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                      }}
+                    >
                       🧑‍✈️
                     </Box>
-                    <Typography variant="h6" fontWeight={700} color="#4a148c">Driver Information</Typography>
+                    <Typography variant="h6" fontWeight={700} color="#4a148c">
+                      Driver Information
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 2 }}>
-                    <Table size="small" sx={{ '& td, & th': { border: 0, py: 1.2 } }}>
+                    <Table
+                      size="small"
+                      sx={{ "& td, & th": { border: 0, py: 1.2 } }}
+                    >
                       <TableBody>
                         {selectedBidDetails.driverName && (
                           <TableRow>
-                            <TableCell sx={{ width: 220, color: 'text.secondary' }}>Driver Name</TableCell>
-                            <TableCell sx={{ width: 80, color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.driverName}</TableCell>
+                            <TableCell
+                              sx={{ width: 220, color: "text.secondary" }}
+                            >
+                              Driver Name
+                            </TableCell>
+                            <TableCell sx={{ width: 80, color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.driverName}
+                            </TableCell>
                           </TableRow>
                         )}
                         {selectedBidDetails.driverPhone && (
                           <TableRow>
-                            <TableCell sx={{ color: 'text.secondary' }}>Driver Phone</TableCell>
-                            <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.driverPhone}</TableCell>
+                            <TableCell sx={{ color: "text.secondary" }}>
+                              Driver Phone
+                            </TableCell>
+                            <TableCell sx={{ color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.driverPhone}
+                            </TableCell>
                           </TableRow>
                         )}
                         {selectedBidDetails.vehicleNumber && (
                           <TableRow>
-                            <TableCell sx={{ color: 'text.secondary' }}>Vehicle Number</TableCell>
-                            <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{selectedBidDetails.vehicleNumber}</TableCell>
+                            <TableCell sx={{ color: "text.secondary" }}>
+                              Vehicle Number
+                            </TableCell>
+                            <TableCell sx={{ color: "#9e9e9e" }}>
+                              -----
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>
+                              {selectedBidDetails.vehicleNumber}
+                            </TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -1283,50 +1809,135 @@ const Dashboard = () => {
               )}
 
               {/* Negotiation History Card */}
-              <Paper elevation={0} sx={{ border: '1px solid #90caf9', borderRadius: 2, overflow: 'hidden' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, background: '#e3f2fd' }}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: 1, background: '#1976d2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: "1px solid #90caf9",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.5,
+                    background: "#e3f2fd",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 1,
+                      background: "#1976d2",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
                     💬
                   </Box>
-                  <Typography variant="h6" fontWeight={700} color="#0d47a1">Negotiation History</Typography>
+                  <Typography variant="h6" fontWeight={700} color="#0d47a1">
+                    Negotiation History
+                  </Typography>
                 </Box>
-                <Box sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
-                  {negotiationHistory?.internalNegotiation?.history?.length > 0 ? (
-                    negotiationHistory.internalNegotiation.history.map((msg, index) => (
-                      <Box key={index} sx={{ mb: 1.5, p: 1.5, bgcolor: (msg.by || '').toLowerCase().includes('shipper') ? '#f5f5f5' : '#e3f2fd', borderRadius: 2, maxWidth: '90%', ml: (msg.by || '').toLowerCase().includes('shipper') ? 0 : 'auto' }}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.75rem', mb: 0.5 }}>
-                          {msg.by} • {new Date(msg.at).toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
-                      </Box>
-                    ))
+                <Box sx={{ p: 2, maxHeight: 300, overflowY: "auto" }}>
+                  {negotiationHistory?.internalNegotiation?.history?.length >
+                  0 ? (
+                    negotiationHistory.internalNegotiation.history.map(
+                      (msg, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            mb: 1.5,
+                            p: 1.5,
+                            bgcolor: (msg.by || "")
+                              .toLowerCase()
+                              .includes("shipper")
+                              ? "#f5f5f5"
+                              : "#e3f2fd",
+                            borderRadius: 2,
+                            maxWidth: "90%",
+                            ml: (msg.by || "").toLowerCase().includes("shipper")
+                              ? 0
+                              : "auto",
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            color="text.secondary"
+                            sx={{ fontSize: "0.75rem", mb: 0.5 }}
+                          >
+                            {msg.by} • {new Date(msg.at).toLocaleString()}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ whiteSpace: "pre-wrap" }}
+                          >
+                            {msg.message}
+                          </Typography>
+                        </Box>
+                      ),
+                    )
                   ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", py: 2 }}
+                    >
                       No negotiation history found.
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0', display: 'flex', gap: 1 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderTop: "1px solid #e0e0e0",
+                    display: "flex",
+                    gap: 1,
+                  }}
+                >
                   <TextField
                     fullWidth
                     size="small"
                     placeholder="Type your message..."
                     value={negotiationMessage}
                     onChange={(e) => setNegotiationMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendNegotiation()}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && handleSendNegotiation()
+                    }
                   />
-                  <Button
-                    variant="contained"
-                    onClick={handleSendNegotiation}
-                    disabled={negotiationLoading || !negotiationMessage.trim()}
-                  >
-                    Send
-                  </Button>
+                 <Button
+  variant="contained"
+  onClick={handleSendNegotiation}
+  disabled={negotiationLoading || !negotiationMessage.trim()}
+  sx={{
+    "& .MuiButton-root": { color: "#fff" },
+    color: "#fff !important",
+    "&.Mui-disabled": {
+      color: "rgba(255,255,255,0.5) !important",
+    },
+  }}
+>
+  Send
+</Button>
                 </Box>
               </Paper>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 4,
+              }}
+            >
               <Typography>No details available</Typography>
             </Box>
           )}
@@ -1334,32 +1945,68 @@ const Dashboard = () => {
       </Dialog>
 
       {/* Assign Driver Modal */}
-      <Dialog open={assignModalOpen} onClose={handleCloseAssignModal} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: '#1976d2', fontSize: 22, borderBottom: '1px solid #e0e0e0' }}>
-          Assign Driver
+      <Dialog
+        open={assignModalOpen}
+        onClose={handleCloseAssignModal}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ p: 0 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2,
+              py: 1.5,
+              background: brand,
+              color: headerTextColor,
+              // borderBottom: "1px solid #e0e0e0",
+            }}
+          >
+            <Typography variant="h6" fontWeight={700} sx={{ color: "white" }}>
+              Assign Driver
+            </Typography>
+            <IconButton
+              onClick={handleCloseAssignModal}
+              sx={{
+                color: "white",
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
+              size="small"
+              aria-label="Close assign driver dialog"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
-        <DialogContent sx={{ px: 4, py: 3, background: '#f8fafc' }}>
+        <DialogContent sx={{ px: 4, py: 3, background: "#f8fafc" }}>
           <Box component="form" onSubmit={handleAssignSubmit}>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid container spacing={2} sx={{ mt: 3 }}>
               <Grid item xs={12}>
                 <Autocomplete
                   options={drivers}
-                  getOptionLabel={(d) => d?.fullName || d?.name || d?.email || 'Driver'}
-                  value={drivers.find((d) => d._id === assignForm.driverId) || null}
-                  onChange={(e, newVal) => setAssignForm((prev) => ({ ...prev, driverId: newVal?._id || '' }))}
+                  getOptionLabel={(d) =>
+                    d?.fullName || d?.name || d?.email || "Driver"
+                  }
+                  value={
+                    drivers.find((d) => d._id === assignForm.driverId) || null
+                  }
+                  onChange={(e, newVal) =>
+                    setAssignForm((prev) => ({
+                      ...prev,
+                      driverId: newVal?._id || "",
+                    }))
+                  }
                   renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Driver Name"
-                      size="medium"
-                    />
+                    <TextField {...params} label="Driver Name" size="medium" />
                   )}
                   sx={{
-                    width: '180px',
-                    '& .MuiOutlinedInput-root': {
+                    width: "180px",
+                    "& .MuiOutlinedInput-root": {
                       borderRadius: 2,
-                      backgroundColor: '#ffffff',
-                    }
+                      backgroundColor: "#ffffff",
+                    },
                   }}
                 />
               </Grid>
@@ -1372,18 +2019,40 @@ const Dashboard = () => {
                   fullWidth
                   size="medium"
                   sx={{
-                    width: '180px',
-                    '& .MuiOutlinedInput-root': {
+                    width: "180px",
+                    "& .MuiOutlinedInput-root": {
                       borderRadius: 2,
-                      backgroundColor: '#ffffff',
-                    }
+                      backgroundColor: "#ffffff",
+                    },
                   }}
                 />
               </Grid>
             </Grid>
             <DialogActions sx={{ mt: 3, p: 0 }}>
-              <Button onClick={handleCloseAssignModal} variant="outlined" sx={{ borderRadius: 2, fontWeight: 600, color: '#1976d2', borderColor: '#1976d2' }}>Cancel</Button>
-              <Button type="submit" variant="contained" color="primary" sx={{ borderRadius: 2, fontWeight: 700 }}>Assign</Button>
+              <Button
+                onClick={handleCloseAssignModal}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  color: "red",
+                  borderColor: "red",
+                  "&:hover": {
+                    backgroundColor: "red",
+                    color: "white",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{ borderRadius: 2, fontWeight: 700, color: "#fff" }}
+              >
+                Assign
+              </Button>
             </DialogActions>
           </Box>
         </DialogContent>

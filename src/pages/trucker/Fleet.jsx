@@ -43,11 +43,12 @@ import {
 } from '@mui/icons-material';
 import { BASE_API_URL } from '../../apiConfig';
 import { useThemeConfig } from '../../context/ThemeContext';
+import { FiPlus } from "react-icons/fi";
 
 // just for github
 const Dashboard = () => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(7);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -305,6 +306,23 @@ const Dashboard = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  const totalItems = filteredVehicles.length;
+  const totalPages = Math.max(1, Math.ceil((totalItems || 1) / rowsPerPage));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const pageStart = clampedPage * rowsPerPage;
+  const pageEnd = Math.min(totalItems, pageStart + rowsPerPage);
+  const visibleRows = filteredVehicles.slice(pageStart, pageEnd);
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    const start = Math.max(1, clampedPage + 1 - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (start > 1) pages.push(1, '…');
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) pages.push('…', totalPages);
+    return pages;
+  };
+
   // Fleet Skeleton Loading Component
   const FleetSkeleton = () => (
     <Box sx={{ p: 3 }}>
@@ -384,88 +402,54 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700}>
-            Fleet Overview
-          </Typography>
-          <Chip
-            label={`${vehicles.length} Vehicle${vehicles.length !== 1 ? 's' : ''}`}
-            color="primary"
-            sx={{ fontWeight: 600 }}
-          />
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search vehicles..."
-            value={searchTerm}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="outlined"
+      <div className="mb-2 flex items-center gap-2">
+        <div className="text-2xl font-semibold text-gray-700">Fleet Overview</div>
+        <span className="inline-block rounded-full bg-blue-600 text-white text-base font-semibold px-3 py-1">
+          {vehicles.length} Vehicles
+        </span>
+      </div>
+      <div className="mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search vehicles..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full h-11 rounded-md border border-gray-200 pl-10 pr-3 text-lg outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
             onClick={exportToCSV}
             disabled={vehicles.length === 0}
-            sx={{
-              borderRadius: 2,
-              fontSize: '0.75rem',
-              px: 2,
-              py: 0.8,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: '#1976d2',
-              borderColor: '#1976d2',
-              '&:hover': {
-                borderColor: '#0d47a1',
-                color: '#0d47a1',
-              },
-            }}
+            className="h-11 px-6 rounded-md border border-blue-600 text-blue-600 text-base font-medium cursor-pointer hover:bg-blue-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Export CSV
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setOpenAddDialog(true)}
-            sx={{
-              backgroundColor: '#1976d2',
-              color: 'white',
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: '#0d47a1',
-              },
-            }}
-          >
-            Add Vehicle
-          </Button>
-        </Stack>
-      </Box>
+          </button>
+         <button
+  onClick={() => setOpenAddDialog(true)}
+  className="h-11 px-4 rounded-md border border-blue-600 text-white text-base font-medium cursor-pointer bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+>
+  <FiPlus size={18} strokeWidth={4} />
+  Add Vehicle
+</button>
+        </div>
+      </div>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -473,282 +457,187 @@ const Dashboard = () => {
         </Alert>
       )}
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: (themeConfig?.content?.bgImage ? 'rgba(255,255,255,0.94)' : (themeConfig?.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
-        {themeConfig?.table?.bgImage && (
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${themeConfig.table.bgImage})`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: themeConfig.table?.bgImageOpacity ?? 0,
-            pointerEvents: 'none',
-            zIndex: 0,
-          }} />
-        )}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Table
-          sx={{
-            borderRadius: 3,
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <TableHead>
-            <TableRow
-              sx={{
-                background: 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)',
-              }}
-            >
-              {[
-                'Vehicle No',
-                'Chassis No',
-                'Engine No',
-                'Model Year',
-                'Vehicle Type',
-                'Make',
-                'Model',
-                'Capacity',
-                'Status',
-                'Actions',
-              ].map((header) => (
-                <TableCell
-                  key={header}
-                  sx={{
-                    fontWeight: 700,
-                    color: '#374151',
-                    fontSize: '0.95rem',
-                    py: 1.5,
-                    borderBottom: '2px solid #e2e8f0',
-                  }}
-                >
-                  {header}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell><Skeleton variant="rectangular" width={80} height={26} sx={{ borderRadius: 1 }} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
-                  <TableCell><Skeleton variant="rectangular" width={70} height={26} sx={{ borderRadius: 1 }} /></TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                      <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : filteredVehicles.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <LocalShipping sx={{ fontSize: 48, color: '#cbd5e1' }} />
-                    <Typography variant="h6" color="text.secondary" fontWeight={600}>
-                      No vehicles found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {vehicles.length === 0 
-                        ? 'Add your first vehicle to get started!' 
-                        : 'Try adjusting your search criteria'}
-                    </Typography>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredVehicles
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((vehicle) => (
-                  <TableRow 
-                    key={vehicle._id} 
-                    hover 
-                    sx={{ 
-                      transition: 'all 0.25s ease',
-                      borderBottom: '1px solid #f1f5f9',
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem', py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocalShipping sx={{ fontSize: 18, color: '#64748b' }} />
-                        <Typography sx={{ fontWeight: 700 }}>{vehicle.vehicleNo}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#64748b', py: 2 }}>
-                      <Typography variant="body2">{vehicle.chassisNo}</Typography>
-                    </TableCell>
-                    <TableCell sx={{ color: '#64748b', py: 2 }}>
-                      <Typography variant="body2">{vehicle.engineNo}</Typography>
-                    </TableCell>
-                    <TableCell sx={{ color: '#64748b', py: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CalendarToday sx={{ fontSize: 16, color: '#94a3b8' }} />
-                        <Typography variant="body2">{vehicle.modelYear}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Chip
-                        label={vehicle.vehicleType}
-                        size="small"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          height: 26,
-                          backgroundColor: '#e0e7ff',
-                          color: '#3730a3',
-                          border: '1px solid #c7d2fe',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ color: '#475569', py: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {vehicle.make}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ color: '#475569', py: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {vehicle.model}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ color: '#64748b', py: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {vehicle.capacity} tons
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Chip
-                        label={vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-                        size="small"
-                        color={vehicle.status === 'active' ? 'success' : 'warning'}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          height: 26,
-                          ...(vehicle.status === 'active' && {
-                            backgroundColor: '#d1fae5',
-                            color: '#065f46',
-                            border: '1px solid #a7f3d0',
-                          }),
-                          ...(vehicle.status !== 'active' && {
-                            backgroundColor: '#fef3c7',
-                            color: '#92400e',
-                            border: '1px solid #fde68a',
-                          })
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Visibility />}
+      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="overflow-x-auto p-4">
+          <table className="min-w-full border-separate border-spacing-y-4">
+            <thead>
+              <tr className="text-left bg-slate-100">
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">Vehicle No</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Chassis No</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Engine No</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Model Year</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Vehicle Type</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Make</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Model</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Capacity</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">Status</th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index}>
+                    <td className="px-3 py-2 text-sm text-slate-700 rounded-l-xl border-t border-b border-l border-gray-200">Loading…</td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 border-t border-b border-gray-200"></td>
+                    <td className="px-3 py-2 rounded-r-xl border-t border-b border-r border-gray-200"></td>
+                  </tr>
+                ))
+              ) : totalItems === 0 ? (
+                <tr>
+                  <td className="px-3 py-6 text-center text-sm text-slate-500" colSpan={10}>No vehicles found</td>
+                </tr>
+              ) : (
+                visibleRows.map((vehicle) => (
+                  <tr key={vehicle._id} className="hover:bg-slate-50">
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
+                      {vehicle.vehicleNo}
+                    </td>
+                   <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
+  <div className="relative group max-w-[145px]">
+
+    <span className="block truncate">
+      {vehicle.chassisNo || "-"}
+    </span>
+
+    {/* Tooltip */}
+    {vehicle.chassisNo && (
+      <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                      bg-gray-900 text-white text-sm px-3 py-1.5 
+                      rounded-md shadow-lg whitespace-nowrap z-50">
+        {vehicle.chassisNo}
+      </div>
+    )}
+
+  </div>
+</td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {vehicle.engineNo}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {vehicle.modelYear}
+                    </td>
+                    <td className="px-4 py-4 text-gray-700 truncate border-t border-b border-gray-200">
+                      <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                        {vehicle.vehicleType}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {vehicle.make}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {vehicle.model}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate border-t border-b border-gray-200">
+                      {vehicle.capacity} tons
+                    </td>
+                    <td className="px-4 py-4 text-gray-700 border-t border-b border-gray-200">
+                      <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold border ${
+                        (vehicle.status || '').toLowerCase() === 'active'
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
+                        {vehicle.status && vehicle.status[0].toUpperCase() + vehicle.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 rounded-r-xl border-t border-b border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <button
                           onClick={() => openViewDialogHandler(vehicle)}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#2563eb',
-                            borderColor: '#bfdbfe',
-                            backgroundColor: '#eff6ff',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#2563eb',
-                              color: '#fff',
-                              borderColor: '#2563eb',
-                            },
-                          }}
+                          className="h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
                         >
                           View
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Edit />}
+                        </button>
+                        <button
                           onClick={() => openEditDialogHandler(vehicle)}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#0284c7',
-                            borderColor: '#bae6fd',
-                            backgroundColor: '#f0f9ff',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#0284c7',
-                              color: '#fff',
-                              borderColor: '#0284c7',
-                            },
-                          }}
+                          className="h-8 px-3 rounded-md border border-cyan-600 text-cyan-600 text-base cursor-pointer font-medium hover:bg-cyan-600 hover:text-white"
                         >
                           Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Delete />}
+                        </button>
+                        <button
                           onClick={() => openDeleteDialogHandler(vehicle._id)}
-                          sx={{
-                            fontSize: '0.7rem',
-                            px: 1.5,
-                            py: 0.5,
-                            textTransform: 'none',
-                            color: '#dc2626',
-                            borderColor: '#fecaca',
-                            backgroundColor: '#fef2f2',
-                            fontWeight: 600,
-                            '&:hover': {
-                              backgroundColor: '#dc2626',
-                              color: '#fff',
-                              borderColor: '#dc2626',
-                            },
-                          }}
+                          className="h-8 px-3 rounded-md border border-red-600 text-red-600 text-base cursor-pointer font-medium hover:bg-red-600 hover:text-white"
                         >
                           Delete
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))
-            )}
-          </TableBody>
-        </Table>
-        </Box>
-        <TablePagination
-          component="div"
-          count={filteredVehicles.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-          sx={{
-            borderTop: '1px solid #e0e0e0',
-            backgroundColor: '#fafafa'
-          }}
-        />
-      </Paper>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between pr-40">
+        <div className="flex items-center gap-3 text-sm text-slate-600">
+          <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} vehicles`}</span>
+        </div>
+        <div className="flex items-center gap-2 mr-8">
+          <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+            <span>Rows per page</span>
+            <select
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setPage(Math.max(0, clampedPage - 1))}
+            disabled={clampedPage === 0}
+            className={`h-8 px-3 text-base ${
+              clampedPage === 0
+                ? "text-slate-400 rounded-full cursor-not-allowed"
+                : "text-slate-900 font-semibold cursor-pointer rounded-md"
+            }`}
+          >
+            Previous
+          </button>
+          {getPageNumbers().map((num, idx) =>
+            num === "…" ? (
+              <span key={`e-${idx}`} className="px-1 text-gray-900">…</span>
+            ) : (
+              <button
+                key={num}
+                onClick={() => setPage(Number(num) - 1)}
+                className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${
+                  num === clampedPage + 1 ? "border border-gray-900" : "text-slate-700"
+                }`}
+              >
+                {num}
+              </button>
+            ),
+          )}
+          <button
+            onClick={() => setPage(Math.min(totalPages - 1, clampedPage + 1))}
+            disabled={clampedPage >= totalPages - 1}
+            className={`h-8 px-3 text-base ${
+              clampedPage >= totalPages - 1
+                ? "text-slate-400 rounded-full cursor-not-allowed"
+                : "text-slate-900 font-semibold cursor-pointer rounded-md"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Add Vehicle Dialog */}
       <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Add New Vehicle</DialogTitle>
+        <DialogTitle sx={{ color:"white" }}>Add New Vehicle</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
@@ -832,9 +721,9 @@ const Dashboard = () => {
             </FormControl>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddDialog(false)} sx={{ color: '#d32f2f', '&:hover': { color: '#b71c1c' } }}>Cancel</Button>
-          <Button onClick={handleAddVehicle} variant="contained">
+        <DialogActions sx={{ pb:4, pr:4 }}>
+          <Button onClick={() => setOpenAddDialog(false)} sx={{border: "1px solid #d32f2f", color: '#d32f2f', '&:hover': { color: '#fff', backgroundColor:"#d32f2f" } }}>Cancel</Button>
+          <Button onClick={handleAddVehicle} variant="contained" sx={{color:"#fff"}}>
             Add Vehicle
           </Button>
         </DialogActions>
@@ -842,7 +731,7 @@ const Dashboard = () => {
 
       {/* Edit Vehicle Dialog */}
       <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit Vehicle</DialogTitle>
+        <DialogTitle sx={{ color:"white" }}>Edit Vehicle</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
@@ -927,8 +816,8 @@ const Dashboard = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEditDialog(false)} sx={{ color: '#d32f2f', '&:hover': { color: '#b71c1c' } }}>Cancel</Button>
-          <Button onClick={handleEditVehicle} variant="contained">
+          <Button onClick={() => setOpenEditDialog(false)} sx={{ color: '#d32f2f', border: "1px solid #d32f2f", '&:hover': { color: 'white', backgroundColor:"#d32f2f" } }}>Cancel</Button>
+          <Button onClick={handleEditVehicle} variant="contained" sx={{color:"#fff"}}>
             Update Vehicle
           </Button>
         </DialogActions>
@@ -1035,12 +924,18 @@ const Dashboard = () => {
                     <TableRow>
                       <TableCell sx={{ fontWeight: 600, borderBottom: 'none' }}>Status</TableCell>
                       <TableCell sx={{ borderBottom: 'none' }}>
-                        <Chip
-                          label={selectedVehicle.status}
-                          size="small"
-                          color={selectedVehicle.status === 'active' ? 'success' : 'warning'}
-                          sx={{ fontWeight: 600 }}
-                        />
+                       <Chip
+  label={selectedVehicle.status}
+  size="small"
+  color={selectedVehicle.status === 'active' ? 'success' : 'warning'}
+  sx={{
+    fontWeight: 600,
+    ...(selectedVehicle.status === 'active' && {
+      backgroundColor: "#16a34a",
+      "& .MuiChip-label": { color: "#fff" },
+    }),
+  }}
+/>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -1086,13 +981,13 @@ const Dashboard = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenViewDialog(false)} sx={{ color: '#d32f2f', '&:hover': { color: '#b71c1c' } }}>Close</Button>
+          <Button onClick={() => setOpenViewDialog(false)} sx={{ color: '#d32f2f', border: '1px solid #d32f2f', mb:2,mr:10, '&:hover': { color: 'white', backgroundColor: '#d32f2f' } }}>Close</Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-        <DialogTitle sx={{ color: 'error.main', fontWeight: 600 }}>
+        <DialogTitle sx={{ color: 'white', fontWeight: 600 }}>
           Confirm Delete
         </DialogTitle>
         <DialogContent>
