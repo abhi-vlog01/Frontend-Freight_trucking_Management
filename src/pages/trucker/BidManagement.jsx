@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useEffect, useState, useRef } from 'react';
 import {
   Box,
@@ -77,11 +76,9 @@ const Dashboard = () => {
   const { addNotification, unreadBids, pollNegotiations } = useNegotiation();
   const { socket } = useSocket();
   const [negotiationHistory, setNegotiationHistory] = useState(null);
-  const [negotiationMessage, setNegotiationMessage] = useState("");
   const negotiationPollInFlightRef = useRef(false);
   const [negotiationMessage, setNegotiationMessage] = useState('');
   const [negotiationLoading, setNegotiationLoading] = useState(false);
-
   const formatCityState = (obj) => {
     if (!obj) return "";
     const city = obj.city || "";
