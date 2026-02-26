@@ -468,6 +468,29 @@ const AddUserShipper = () => {
     );
   }, [customersData, searchTerm]);
 
+  const totalItems = filteredData?.length || 0;
+  const totalPages = Math.max(1, Math.ceil((totalItems || 1) / rowsPerPage));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const pageStart = clampedPage * rowsPerPage;
+  const pageEnd = Math.min(totalItems, pageStart + rowsPerPage);
+  const visibleRows = (filteredData || []).slice(pageStart, pageEnd);
+  const getPageNumbers = () => {
+    const pages = totalPages;
+    const current = clampedPage + 1;
+    if (pages <= 7) {
+      return Array.from({ length: pages }, (_, i) => i + 1);
+    }
+    const nums = [];
+    nums.push(1);
+    if (current > 4) nums.push('…');
+    const start = Math.max(2, current - 1);
+    const end = Math.min(pages - 1, current + 1);
+    for (let i = start; i <= end; i++) nums.push(i);
+    if (current < pages - 3) nums.push('…');
+    nums.push(pages);
+    return nums;
+  };
+
   const handleFormInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -475,6 +498,19 @@ const AddUserShipper = () => {
       [name]: value
     }));
   }, []);
+
+  const inputFieldSx = {
+    '& .MuiInputBase-root': {
+      borderRadius: 2,
+      backgroundColor: '#fff',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4A90E2' },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#4A90E2' },
+    '& .MuiInputBase-root.Mui-focused': { backgroundColor: '#fff' },
+    '& input:-webkit-autofill': { WebkitBoxShadow: '0 0 0 1000px #fff inset' },
+  };
 
   if (loading && customersData.length === 0) {
     return (
@@ -499,233 +535,215 @@ const AddUserShipper = () => {
           {success}
         </Alert>
       )}
-      
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight={700} sx={{ color: (themeConfig.tokens?.text || '#333333'), ...(themeConfig.content?.bgImage ? { backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: 1, px: 1 } : {}) }}>
-            Add User
-          </Typography>
-          <Chip
-            label={`${customersData.length} User${customersData.length !== 1 ? 's' : ''}`}
-            color="primary"
-            sx={{ fontWeight: 600 }}
-          />
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="primary" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 2,
-                fontSize: '0.85rem',
-                px: 1,
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleAddCustomer}
-            sx={{
-              backgroundColor: '#1976d2',
-              color: 'white',
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: '#0d47a1',
-              },
-            }}
-          >
-            Add User
-          </Button>
-        </Stack>
-      </Box>
 
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', backgroundColor: ((themeConfig.table?.bgImage || themeConfig.content?.bgImage) ? 'transparent' : (themeConfig.table?.bg || '#fff')), position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
-        {themeConfig.table?.bgImage && (
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${themeConfig.table.bgImage})`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: Number(themeConfig.table?.bgImageOpacity ?? 0),
-            pointerEvents: 'none',
-            zIndex: 0,
-          }} />
-        )}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Table sx={{ backgroundColor: (themeConfig.table?.bgImage || themeConfig.content?.bgImage) ? 'rgba(255,255,255,0.94)' : 'inherit' }}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: (themeConfig.table?.headerBg || '#f0f4f8') }}>
-              <TableCell sx={{ fontWeight: 600, width: '150px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '120px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Designation</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '150px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Email</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '120px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Mobile</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '200px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Location</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '100px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600, width: '150px', color: (themeConfig.table?.headerText || themeConfig.table?.text || '#333333') }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredData && filteredData.length > 0 ? (
-              filteredData
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((customer) => (
-                  <TableRow 
-                    key={customer._id} 
-                    hover 
-                    sx={{ 
-                      transition: '0.3s', 
-                      '&:hover': { backgroundColor: '#e3f2fd' }
-                    }}
-                  >
-                    <TableCell sx={{ width: '150px', fontWeight: 600, color: (themeConfig.table?.text || '#333333') }}>
+      <div className="mb-2 flex items-center gap-2">
+        <div className="text-2xl font-semibold text-gray-700">Add User</div>
+        <span
+          className="inline-block rounded-full text-white text-base font-semibold px-3 py-1"
+          style={{ backgroundColor: brand }}
+        >
+          {customersData.length} {customersData.length === 1 ? 'User' : 'Users'}
+        </span>
+      </div>
+      <div className="mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full h-11 rounded-md border border-gray-200 pl-10 pr-3 text-lg outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+  onClick={handleAddCustomer}
+  className="h-11 px-4 rounded-md text-white text-base font-medium cursor-pointer flex items-center gap-2"
+  style={{ backgroundColor: '#1976d2', border: '1px solid #1976d2' }}
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1565c0')}
+  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1976d2')}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+  Add User
+</button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="overflow-x-auto p-4">
+          <table className="min-w-full border-separate border-spacing-y-4">
+            <thead>
+              <tr className="text-left bg-slate-100">
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-l-xl border-t border-b border-l border-gray-200">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Designation
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Mobile
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Location
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 border-t border-b border-gray-200">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-base font-semibold text-gray-500 rounded-r-xl border-t border-b border-r border-gray-200">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {totalItems > 0 ? (
+                visibleRows.map((customer) => (
+                  <tr key={customer._id} className="hover:bg-slate-50">
+                    <td className="px-4 py-4 font-medium text-gray-700 truncate rounded-l-xl border-t border-b border-l border-gray-200">
                       {customer.companyInfo?.companyName}
-                    </TableCell>
-                    <TableCell sx={{ width: '120px', color: (themeConfig.table?.text || '#333333') }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
                       {customer.companyInfo?.mcDotNo}
-                    </TableCell>
-                    <TableCell sx={{ width: '150px', color: (themeConfig.table?.text || '#333333') }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
                       {customer.contactInfo?.email}
-                    </TableCell>
-                    <TableCell sx={{ width: '120px', color: (themeConfig.table?.text || '#333333') }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
                       {customer.contactInfo?.mobile}
-                    </TableCell>
-                    <TableCell sx={{ width: '200px', wordWrap: 'break-word', color: (themeConfig.table?.text || '#333333') }}>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700 border-t border-b border-gray-200">
                       {customer.locationDetails?.city}, {customer.locationDetails?.state} {customer.locationDetails?.zipCode}
-                    </TableCell>
-                    <TableCell sx={{ width: '100px' }}>
-                      <Chip
-                        label={customer.status}
-                        size="small"
-                        color={customer.status === 'active' ? 'success' : 'default'}
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ width: '150px' }}>
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Visibility />}
+                    </td>
+                    <td className="px-4 py-4 text-gray-700 border-t border-b border-gray-200">
+                      <span
+                        className={`inline-block rounded-full px-3 py-1 text-base font-medium border ${
+                          (customer.status || '').toLowerCase() === 'active'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : 'bg-slate-100 text-slate-700 border-slate-300'
+                        }`}
+                      >
+                        {customer.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 rounded-r-xl border-t border-b border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <button
                           onClick={() => handleViewCustomer(customer)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1,
-                            py: 0.5,
-                            textTransform: 'none',
-                            minWidth: 'auto'
-                          }}
+                          className="h-8 px-3 rounded-md border border-blue-600 text-blue-600 text-base cursor-pointer font-medium hover:bg-blue-600 hover:text-white"
                         >
                           View
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<AssignmentInd />}
+                        </button>
+                        <button
                           onClick={() => handleAssignPermission(customer)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1,
-                            py: 0.5,
-                            textTransform: 'none',
-                            minWidth: 'auto',
-                            color: 'info.main',
-                            borderColor: 'info.main',
-                            '&:hover': {
-                              backgroundColor: 'info.main',
-                              color: 'white'
-                            }
-                          }}
+                          className="h-8 px-3 rounded-md border border-cyan-600 text-cyan-600 text-base cursor-pointer font-medium hover:bg-cyan-600 hover:text-white"
                         >
                           Assign
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Edit />}
+                        </button>
+                        <button
                           onClick={() => handleEditCustomer(customer)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1,
-                            py: 0.5,
-                            textTransform: 'none',
-                            minWidth: 'auto'
-                          }}
+                          className="h-8 px-3 rounded-md border border-sky-600 text-sky-600 text-base cursor-pointer font-medium hover:bg-sky-600 hover:text-white"
                         >
                           Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Delete />}
-                          color="error"
+                        </button>
+                        <button
                           onClick={() => handleDeleteCustomer(customer._id || customer.customerId)}
-                          sx={{
-                            fontSize: '0.75rem',
-                            px: 1,
-                            py: 0.5,
-                            textTransform: 'none',
-                            minWidth: 'auto',
-                            color: 'error.main',
-                            borderColor: 'error.main',
-                            '&:hover': {
-                              backgroundColor: 'error.main',
-                              color: 'white'
-                            }
-                          }}
+                          className="h-8 px-3 rounded-md border border-red-600 text-red-600 text-base cursor-pointer font-medium hover:bg-red-600 hover:text-white"
                         >
                           Delete
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" color="text.secondary">
+              ) : (
+                <tr>
+                  <td className="px-3 py-6 text-center text-sm text-slate-500" colSpan={7}>
                     {customersData.length === 0 ? 'No customers found. Add your first customer!' : 'No customers match your search criteria'}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={filteredData ? filteredData.length : 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-        </Box>
-      </Paper>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-2 border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-center justify-between pr-45">
+        <div className="flex items-center gap-3 text-sm text-slate-600">
+          <span>{`Showing ${totalItems === 0 ? 0 : pageStart + 1} to ${pageEnd} of ${totalItems} users`}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 font-medium text-gray-700">
+            <span>Rows per page</span>
+            <select
+              value={rowsPerPage}
+              onChange={handleChangeRowsPerPage}
+              className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setPage(Math.max(0, clampedPage - 1))}
+            disabled={clampedPage === 0}
+            className={`h-8 px-3 text-base ${clampedPage === 0 ? 'text-slate-400 rounded-full cursor-not-allowed' : 'text-slate-900 font-semibold cursor-pointer rounded-md'}`}
+          >
+            Previous
+          </button>
+          {getPageNumbers().map((num, idx) =>
+            num === '…' ? (
+              <span key={`e-${idx}`} className="px-1 text-gray-900">…</span>
+            ) : (
+              <button
+                key={num}
+                onClick={() => setPage(Number(num) - 1)}
+                className={`min-w-8 h-8 px-2 rounded-xl text-base cursor-pointer ${num === clampedPage + 1 ? 'border border-gray-900' : 'text-slate-700'}`}
+              >
+                {num}
+              </button>
+            )
+          )}
+          <button
+            onClick={() => setPage(Math.min(totalPages - 1, clampedPage + 1))}
+            disabled={clampedPage >= totalPages - 1}
+            className={`h-8 px-3 text-base ${clampedPage >= totalPages - 1 ? 'text-slate-400 rounded-full cursor-not-allowed' : 'text-slate-900 font-semibold cursor-pointer rounded-md'}`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Add Customer Dialog */}
       <Dialog 
@@ -752,15 +770,15 @@ const AddUserShipper = () => {
           py: 2
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <PersonAdd sx={{ fontSize: 28 }} />
-            <Typography variant="h6" fontWeight={700}>
-              Add New User
+            <PersonAdd sx={{ fontSize: 28, color:"white" }} />
+            <Typography variant="h6" fontWeight={700} sx={{color:"white"}}>
+              Add New Users
             </Typography>
           </Box>
           <IconButton 
             onClick={() => setAddModalOpen(false)}
             sx={{ 
-              color: 'inherit',
+              color: 'white',
               '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
             }}
           >
@@ -773,21 +791,29 @@ const AddUserShipper = () => {
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 {/* Company Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Business fontSize="small" color="primary" />
-                    User Information
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AssignmentInd sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      User Information
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField 
@@ -806,7 +832,7 @@ const AddUserShipper = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -826,7 +852,7 @@ const AddUserShipper = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -846,7 +872,7 @@ const AddUserShipper = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -854,21 +880,29 @@ const AddUserShipper = () => {
                 </Grid>
 
                 {/* Contact Information Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Phone fontSize="small" color="primary" />
-                    Contact Details
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Phone sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      Contact Details
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField 
@@ -887,7 +921,7 @@ const AddUserShipper = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -906,7 +940,7 @@ const AddUserShipper = () => {
                               </InputAdornment>
                             ),
                           }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -914,21 +948,29 @@ const AddUserShipper = () => {
                 </Grid>
 
                 {/* Location Section */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ 
-                    color: 'text.secondary', 
-                    fontWeight: 700, 
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <LocationOn fontSize="small" color="primary" />
-                    Location
-                  </Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: '12px' }}>
+                <Grid 
+                  item xs={12}
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 3,
+                    p: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    transition: '0.3s',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    '&:hover': { boxShadow: '0 6px 24px rgba(0,0,0,0.1)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <LocationOn sx={{ color: '#1976d2', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2D3748' }}>
+                      Location
+                    </Typography>
+                  </Box>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: '12px' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12}>
                         <TextField 
@@ -939,7 +981,7 @@ const AddUserShipper = () => {
                           fullWidth
                           variant="outlined"
                           placeholder="e.g. 123 Logistics Way"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -950,7 +992,7 @@ const AddUserShipper = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -961,7 +1003,7 @@ const AddUserShipper = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -972,7 +1014,7 @@ const AddUserShipper = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -983,7 +1025,7 @@ const AddUserShipper = () => {
                           onChange={handleFormInputChange} 
                           fullWidth
                           variant="outlined"
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+                          sx={inputFieldSx}
                         />
                       </Grid>
                     </Grid>
@@ -1022,7 +1064,10 @@ const AddUserShipper = () => {
                   borderRadius: '8px', 
                   textTransform: 'none', 
                   px: 3,
-                  fontWeight: 600
+                  fontWeight: 600,
+                  color: "red",
+                  border: "1px solid red",
+                  ":hover": { background: "red", color: "white" }
                 }}
               >
                 Cancel
@@ -1037,10 +1082,11 @@ const AddUserShipper = () => {
                   px: 4,
                   fontWeight: 600,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  background: brand
+                  background: brand,
+                  color: "#fff"
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create User'}
+                {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : 'Create Users'}
               </Button>
             </DialogActions>
           </Box>
@@ -1076,7 +1122,7 @@ const AddUserShipper = () => {
             borderRadius: '12px 12px 0 0'
           }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" fontWeight={700} sx={{ color: headerTextColor }}>
+              <Typography variant="h6" fontWeight={700} sx={{ color: "white" }}>
                 Edit User
               </Typography>
               <IconButton 
@@ -1089,7 +1135,7 @@ const AddUserShipper = () => {
                   }
                 }}
               >
-                <Close sx={{ color: headerTextColor }} />
+                <Close sx={{ color: "white" }} />
               </IconButton>
             </Box>
           </Box>
@@ -1230,7 +1276,7 @@ const AddUserShipper = () => {
               <Button
                 variant="outlined"
                 onClick={() => setEditModalOpen(false)}
-              sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f' }}
+              sx={{ borderRadius: 3, backgroundColor: '#ffff', color: '#d32f2f', textTransform: 'none', px: 4, borderColor: '#d32f2f', '&:hover': { background: 'red', color:"white" } }}
               >
                 Cancel
               </Button>
@@ -1239,9 +1285,9 @@ const AddUserShipper = () => {
                 variant="contained"
                 disabled={loading}
                 color="primary" 
-                sx={{ borderRadius: 3, textTransform: 'none', px: 4 }}
+                sx={{ borderRadius: 3, textTransform: 'none', px: 4, color:"white" }}
               >
-                {loading ? <CircularProgress size={20} color="inherit" /> : 'Update User'}
+                {loading ? <CircularProgress size={20} color="white" /> : 'Update User'}
               </Button>
             </Box>
           </Box>
@@ -1278,23 +1324,33 @@ const AddUserShipper = () => {
             minHeight: 64
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Business sx={{ fontSize: 28, color: headerTextColor }} />
-              <Typography variant="h5" fontWeight={600} color={headerTextColor}>
+              <Business sx={{ fontSize: 28, color: "white" }} />
+              <Typography variant="h5" fontWeight={600} color="white">
                 User Details
               </Typography>
             </Box>
-            <Button
-              onClick={() => setViewModalOpen(false)}
-              sx={{
-                color: headerTextColor,
-                minWidth: 'auto',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.1)',
-                }
-              }}
-            >
-              ✕
-            </Button>
+            <button
+  onClick={() => setViewModalOpen(false)}
+  className="p-2 rounded cursor-pointer transition-colors duration-200"
+  style={{ color: "white", background: 'transparent', borderRadius: '50%' }}
+  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+</button>
           </DialogTitle>
 
           <DialogContent sx={{ pt: 2, overflowY: 'auto', flex: 1 }}>
@@ -1325,18 +1381,19 @@ const AddUserShipper = () => {
                         <TableRow>
                           <TableCell sx={{ color: 'text.secondary' }}>Status</TableCell>
                           <TableCell sx={{ color: '#9e9e9e' }}>-----</TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={selectedCustomer.status} 
-                              size="small"
-                              sx={{ 
-                                backgroundColor: selectedCustomer.status === 'active' ? '#4caf50' : '#9e9e9e',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: 11
-                              }}
-                            />
-                          </TableCell>
+                         <TableCell>
+  <span
+    className="inline-block rounded-full text-xs font-semibold px-3 py-1 capitalize"
+    style={{
+      backgroundColor:
+        selectedCustomer.status === "active" ? "#dcfce7" : "#f3f4f6",
+      color:
+        selectedCustomer.status === "active" ? "#166534" : "#374151",
+    }}
+  >
+    {selectedCustomer.status}
+  </span>
+</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell sx={{ color: 'text.secondary' }}>Created Date</TableCell>
@@ -1494,15 +1551,15 @@ const AddUserShipper = () => {
           py: 2
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <AssignmentInd sx={{ fontSize: 28 }} />
-            <Typography variant="h6" fontWeight={700}>
+            <AssignmentInd sx={{ fontSize: 28, color:"white" }} />
+            <Typography variant="h6" fontWeight={700} color="white">
               User Permission
             </Typography>
           </Box>
           <IconButton 
             onClick={() => setPermissionModalOpen(false)}
             sx={{ 
-              color: 'inherit',
+              color: 'white',
               '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
             }}
           >
@@ -1556,7 +1613,7 @@ const AddUserShipper = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, borderTop: '1px solid #eee' }}>
-          <Button onClick={() => setPermissionModalOpen(false)} sx={{ textTransform: 'none', color: '#666' }}>
+          <Button onClick={() => setPermissionModalOpen(false)} sx={{ textTransform: 'none', color: "red", border: '1px solid red', '&:hover': { bgcolor: 'red', color: 'white' } }}>
             Cancel
           </Button>
           <Button 
@@ -1565,6 +1622,7 @@ const AddUserShipper = () => {
             sx={{ 
               bgcolor: brand,
               textTransform: 'none',
+              color: 'white',
               px: 4,
               '&:hover': { bgcolor: brand }
             }}

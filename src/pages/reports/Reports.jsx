@@ -770,12 +770,12 @@ const handleCloseModal = () => {
           py: 8,
           textAlign: 'center'
         }}>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+          {/* <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
             No reports data available
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Please check your authentication or try refreshing the page
-          </Typography>
+          </Typography> */}
         </Box>
       )}
 

@@ -3251,10 +3251,10 @@ const handleEditLoad = (load) => {
               <LocalShipping className="text-xl text-blue-500" />
             </Box>
             <Box>
-              <Typography variant="h5" className="font-bold mb-0.5 text-xl text-white" sx={{ color: headerTextColor }}>
+              <Typography variant="h5" className="font-bold mb-0.5 text-xl text-white" sx={{ color: "white" }}>
                 Create New Load
               </Typography>
-              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: headerTextColor }}>
+              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: "white" }}>
                 Fill in the details to create a new shipment
               </Typography>
             </Box>
@@ -3292,7 +3292,7 @@ const handleEditLoad = (load) => {
             <IconButton
               onClick={handleCloseModal}
               sx={{
-                color: headerTextColor,
+                color: "white",
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.2)'
                 },
@@ -4908,16 +4908,16 @@ const handleEditLoad = (load) => {
             sx={{
               borderRadius: 2,
               textTransform: 'none',
-              color: '#4A90E2',
-              borderColor: '#4A90E2',
+              color: 'red',
+              borderColor: 'red',
               px: 4,
               py: 1,
               fontWeight: 500,
               fontSize: '0.95rem',
               '&:hover': {
-                backgroundColor: '#f0f7ff',
-                borderColor: '#357ABD',
-                color: '#357ABD',
+                backgroundColor: 'red',
+                
+                color: 'white',
               },
               '&:disabled': {
                 borderColor: '#cccccc',
@@ -4940,6 +4940,7 @@ const handleEditLoad = (load) => {
               py: 1,
               fontWeight: 600,
               fontSize: '0.95rem',
+              color:"white",
               '&:hover': { opacity: 0.9 },
               '&:disabled': {
                 background: '#cccccc',
@@ -4972,7 +4973,7 @@ const handleEditLoad = (load) => {
       >
         <DialogTitle sx={{
           background: brand,
-          color: headerTextColor,
+          color: "white",
           fontWeight: 700,
           fontSize: { xs: 18, sm: 24 },
           py: { xs: 2, sm: 3 },
@@ -4988,7 +4989,7 @@ const handleEditLoad = (load) => {
             height: 40,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}>
             📋
           </Box>
@@ -5661,6 +5662,7 @@ const handleEditLoad = (load) => {
             variant="contained"
             sx={{
               borderRadius: 3,
+              color:"white",
               fontWeight: 700,
               px: { xs: 3, sm: 4 },
               py: { xs: 1, sm: 1.5 },
@@ -6584,112 +6586,76 @@ const handleEditLoad = (load) => {
               <LocalShipping className="text-xl text-blue-500" />
             </Box>
             <Box>
-              <Typography variant="h5" className="font-bold mb-0.5 text-xl" sx={{ color: headerTextColor }}>
+              <Typography variant="h5" className="font-bold mb-0.5 text-xl" sx={{ color: "white" }}>
                 Edit Load
               </Typography>
-              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: headerTextColor }}>
+              <Typography variant="body2" className="text-sm opacity-95" sx={{ color: "white" }}>
                 Update the load details
               </Typography>
             </Box>
           </Box>
 
           {/* Load Type Toggle and Close Button */}
-          <Stack direction="row" spacing={1.5} className="items-center">
-            {/* OTR Button */}
-            <Button
-              onClick={() => {
-                setEditLoadType('OTR');
-                setEditForm({ ...editForm, loadType: 'OTR', vehicleType: '' });
-              }}
-              variant={editLoadType === 'OTR' ? 'contained' : 'outlined'}
-              className={`rounded-lg min-w-[90px] font-semibold normal-case py-1.5 px-3 text-sm transition-all duration-200`}
-              disableRipple
-              sx={{
-                textTransform: 'none',
-                ...(editLoadType === 'OTR' ? {
-                  backgroundColor: '#ffffff !important',
-                  color: primary + ' !important',
-                  border: 'none',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6 !important',
-                    color: primary + ' !important',
-                    boxShadow: 'none'
-                  },
-                  '&:active': { color: primary + ' !important' },
-                  '&:focus': { color: primary + ' !important' }
-                } : {
-                  color: headerTextColor + ' !important',
-                  borderColor: headerTextColor + ' !important',
-                  backgroundColor: 'transparent',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.08) !important',
-                    color: headerTextColor + ' !important',
-                    boxShadow: 'none'
-                  },
-                  '&:active': { color: headerTextColor + ' !important' },
-                  '&:focus': { color: headerTextColor + ' !important' }
-                })
-              }}
-            >
-              OTR
-            </Button>
-            {/* DRAYAGE Button */}
-            <Button
-              onClick={() => {
-                setEditLoadType('DRAYAGE');
-                setEditForm({ ...editForm, loadType: 'DRAYAGE', vehicleType: '' });
-              }}
-              variant={editLoadType === 'DRAYAGE' ? 'contained' : 'outlined'}
-              className={`rounded-lg min-w-[110px] font-semibold normal-case py-1.5 px-3 text-sm transition-all duration-200`}
-              disableRipple
-              sx={{
-                textTransform: 'none',
-                ...(editLoadType === 'DRAYAGE' ? {
-                  backgroundColor: '#ffffff !important',
-                  color: primary + ' !important',
-                  border: 'none',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6 !important',
-                    color: primary + ' !important',
-                    boxShadow: 'none'
-                  },
-                  '&:active': { color: primary + ' !important' },
-                  '&:focus': { color: primary + ' !important' }
-                } : {
-                  color: headerTextColor + ' !important',
-                  borderColor: headerTextColor + ' !important',
-                  backgroundColor: 'transparent',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.08) !important',
-                    color: headerTextColor + ' !important',
-                    boxShadow: 'none'
-                  },
-                  '&:active': { color: headerTextColor + ' !important' },
-                  '&:focus': { color: headerTextColor + ' !important' }
-                })
-              }}
-            >
-              DRAYAGE
-            </Button>
-            {/* Close Button */}
-            <IconButton
-              onClick={handleCloseEditModal}
-              sx={{
-                color: '#ffffff',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)'
-                },
-                ml: 0.5
-              }}
-              size="small"
-            >
-              <Close />
-            </IconButton>
-          </Stack>
+         <div className="flex items-center gap-3">
+  {/* Toggle Button Group */}
+  <div
+    className="flex rounded-lg p-0.5"
+    style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+  >
+    <button
+      onClick={() => {
+        setEditLoadType('OTR');
+        setEditForm({ ...editForm, loadType: 'OTR', vehicleType: '' });
+      }}
+      className="px-4 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-all duration-200 border-none"
+      style={
+        editLoadType === 'OTR'
+          ? { backgroundColor: '#ffffff', color: primary }
+          : { backgroundColor: 'transparent', color: headerTextColor }
+      }
+    >
+      OTR
+    </button>
+    <button
+      onClick={() => {
+        setEditLoadType('DRAYAGE');
+        setEditForm({ ...editForm, loadType: 'DRAYAGE', vehicleType: '' });
+      }}
+      className="px-4 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-all duration-200 border-none"
+      style={
+        editLoadType === 'DRAYAGE'
+          ? { backgroundColor: '#ffffff', color: primary }
+          : { backgroundColor: 'transparent', color: headerTextColor }
+      }
+    >
+      DRAYAGE
+    </button>
+  </div>
+
+  {/* Close Button */}
+  <button
+    onClick={handleCloseEditModal}
+    className="p-1.5 rounded cursor-pointer transition-colors duration-200"
+    style={{ color: '#ffffff', background: 'transparent', border: 'none' }}
+    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
+    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </button>
+</div>
         </DialogTitle>
 
         <DialogContent className="p-0 bg-gray-100 flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-200 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb:hover]:bg-gray-500">
@@ -7888,21 +7854,21 @@ const handleEditLoad = (load) => {
             variant="outlined"
             disabled={editLoading}
             sx={{
-              borderRadius: 3,
+              borderRadius: 2,
               fontWeight: 700,
-              color: '#667eea',
-              borderColor: '#667eea',
-              borderWidth: 2,
+              color: 'red',
+              borderColor: 'red',
+              borderWidth: 1,
               px: 4,
-              py: 1.5,
+              py: 1,
               fontSize: '1rem',
               textTransform: 'none',
               background: '#ffffff',
               transition: 'all 0.3s ease',
               '&:hover': {
-                borderColor: '#764ba2',
-                color: '#764ba2',
-                backgroundColor: '#f8f9fa',
+               
+                color: 'white',
+                backgroundColor: 'red',
                 transform: 'translateY(-2px)',
                 boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)'
               }
@@ -7918,7 +7884,7 @@ const handleEditLoad = (load) => {
               borderRadius: 3,
               fontWeight: 800,
               background: primary,
-              color: headerTextColor,
+              color: "white",
               px: 5,
               py: 1.5,
               fontSize: '1rem',
@@ -8213,9 +8179,9 @@ const handleEditLoad = (load) => {
 
       {/* CMT Agent Details Modal */}
       <Dialog open={cmtModalOpen} onClose={handleCloseCmtModal} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: headerTextColor, fontSize: 22, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: brand }}>
+        <DialogTitle sx={{ fontWeight: 700, color: "white", fontSize: 22, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: brand }}>
           CMT Agent Details
-          <IconButton onClick={handleCloseCmtModal} sx={{ color: headerTextColor }}>
+          <IconButton onClick={handleCloseCmtModal} sx={{ color: "white" }}>
             <Close />
           </IconButton>
         </DialogTitle>
@@ -8225,7 +8191,7 @@ const handleEditLoad = (load) => {
           ) : cmtData ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Load Information Table */}
-              <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden', pt:2 }}>
                 <Box sx={{ background: '#1976d2', p: 2 }}>
                   <Typography sx={{ fontWeight: 700, color: '#fff', fontSize: 18 }}>
                     📋 Load Information
@@ -8425,7 +8391,7 @@ const handleEditLoad = (load) => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2, background: '#fff' }}>
-          <Button onClick={handleCloseCmtModal} variant="outlined" sx={{ borderRadius: 2, fontWeight: 600, color: '#1976d2', borderColor: '#1976d2' }}>
+          <Button onClick={handleCloseCmtModal} variant="outlined" sx={{ borderRadius: 2, fontWeight: 600, color: 'red', borderColor: 'red', '&:hover': { background: 'red', color:"white" } }}>
             Close
           </Button>
         </DialogActions>
