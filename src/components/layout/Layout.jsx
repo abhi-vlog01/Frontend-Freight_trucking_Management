@@ -52,6 +52,7 @@ import {
   InfoOutlined,
   Payment,
   Home,
+  KeyboardArrowDown,
 } from '@mui/icons-material';
 import ContainerIcon from '../icons/ContainerIcon';
 import { useAuth } from '../../context/AuthContext';
@@ -111,6 +112,7 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const displayName = (user?.compName || user?.companyName || user?.company || user?.name || (userType === 'shipper' ? 'JBL Logistics' : 'HPL'));
 
   useEffect(() => {
     // Demo notification on first load
@@ -614,6 +616,7 @@ const Layout = () => {
           backgroundColor: themeConfig.mainHeader?.bg || themeConfig.header?.bg || 'white',
           color: themeConfig.mainHeader?.text || themeConfig.header?.text || '#333',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          p:0.6,
           transition: 'width 0.3s, margin-left 0.3s',
         }}
       >
@@ -642,7 +645,7 @@ const Layout = () => {
         <Palette />
       </IconButton>
           <IconButton 
-            sx={{ mr: 2, '&:hover': { backgroundColor: themeConfig.mainHeader?.hoverBg || themeConfig.header?.hoverBg || '#e0e0e0' } }}
+            sx={{ mr: 3, '&:hover': { backgroundColor: themeConfig.mainHeader?.hoverBg || themeConfig.header?.hoverBg || '#e0e0e0' } }}
             onClick={handleNotificationClick}
           >
             <Badge badgeContent={unreadCount} color="error">
@@ -821,20 +824,64 @@ const Layout = () => {
                 </Button>
             </Box>
           </Menu>
-          <IconButton
-            size="large"
-            edge="end"
-            aria-label="account of current user"
-            aria-controls="primary-search-account-menu"
-            aria-haspopup="true"
-            onClick={handleProfileMenuOpen}
-            color="inherit"
-            sx={{ '&:hover': { backgroundColor: themeConfig.mainHeader?.hoverBg || themeConfig.header?.hoverBg || '#e0e0e0' } }}
-          >
-            <Avatar sx={{ width: 40, height: 40, bgcolor: themeConfig.tokens?.primary || '#1976d2' }}>
-              {user?.name?.charAt(0) || 'U'}
-            </Avatar>
-          </IconButton>
+         <IconButton
+  size="large"
+  edge="end"
+  aria-label="account of current user"
+  aria-controls="primary-search-account-menu"
+  aria-haspopup="true"
+  onClick={handleProfileMenuOpen}
+  color="inherit"
+  sx={{
+    '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+    '&:active': { backgroundColor: 'transparent' },  // removes dark click effect
+    '&.Mui-focusVisible': { backgroundColor: 'transparent' },
+    borderRadius: 0,
+  }}
+>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+    <Avatar
+      sx={{
+        width: 40,           // slightly smaller avatar
+        height: 40,
+        bgcolor: themeConfig.tokens?.primary || '#1976d2',
+        fontWeight: 500,
+        fontSize: '1.3rem', // smaller initial letter
+      }}
+    >
+      {displayName?.charAt(0)?.toUpperCase() || 'U'}
+    </Avatar>
+    <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', textAlign: 'left' }}>
+      <Typography
+        sx={{
+          fontWeight: 500,
+          mt: 0.6,
+          lineHeight: 1,
+          fontSize: '0.9rem',          // reduced from default
+          color: themeConfig.mainHeader?.text || themeConfig.header?.text || '#555',  // lighter than #333
+        }}
+      >
+        {displayName}
+      </Typography>
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'text.secondary',
+          fontWeight: 400,             // lighter weight
+          fontSize: '0.80rem',         // slightly smaller caption
+        }}
+      >
+        {userType === 'trucker' ? 'Trucker' : 'Shipper'}
+      </Typography>
+    </Box>
+    <KeyboardArrowDown
+      sx={{
+        color: themeConfig.mainHeader?.text || themeConfig.header?.text || '#555',  // lighter color
+        fontSize: '1.1rem',            // slightly smaller arrow icon
+      }}
+    />
+  </Box>
+</IconButton>
         </Toolbar>
       </AppBar>
 

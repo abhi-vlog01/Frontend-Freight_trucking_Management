@@ -28,6 +28,10 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Receipt, Download, Search, Send } from "@mui/icons-material";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PersonIcon from "@mui/icons-material/Person";
+import MessageIcon from "@mui/icons-material/Message";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import alertify from "alertifyjs";
 import axios from "axios";
 import { BASE_API_URL } from "../../apiConfig";
@@ -652,6 +656,19 @@ const Dashboard = () => {
     return () => (interval && clearInterval(interval));
   }, [viewDetailsModalOpen, selectedBidDetails]);
 
+  const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+    backgroundColor: "#fafafa",
+    "&:hover": { backgroundColor: "#f5f5f5" },
+    "&.Mui-focused": { backgroundColor: "#fff" },
+  },
+  "& .MuiInputLabel-root": {
+    fontWeight: 500,
+    color: "#666",
+  },
+};
+
   return (
     <Box sx={{ p: 3 }}>
       <div className="mb-2 text-2xl font-semibold text-gray-700">
@@ -1054,303 +1071,368 @@ const Dashboard = () => {
           },
         }}
       >
-        <DialogTitle sx={{ textAlign: "left", color: "#fff" }}>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            color: "white",
+            background: brand,
+            py: 1.5,
+            px: 2.5,
+          }}
+        >
           Place Your Bid
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseBidModal}
+            sx={{ color: "#ffffff" }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ px: 4, py: 3, background: "#fff" }}>
-          {selectedLoad && (
-            <Box component="form" onSubmit={handleBidSubmit}>
-              {/* Load Details Table */}
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  mb: 3,
-                  borderRadius: 2,
-                  background: "#f8fafc",
-                  boxShadow: "0 1px 6px rgba(25, 118, 210, 0.06)",
-                }}
-              >
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <TableCell sx={{ fontWeight: 600 }}>Pickup</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Drop</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Weight</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Commodity</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>
-                        Vehicle Type
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        {selectedLoad.origins && selectedLoad.origins.length > 0
-                          ? `${selectedLoad.origins[0].city || ""}${selectedLoad.origins[0].state ? `, ${selectedLoad.origins[0].state}` : ""}`
-                          : selectedLoad.origin?.city || "-"}
-                      </TableCell>
-                      <TableCell>
-                        {selectedLoad.destinations &&
-                        selectedLoad.destinations.length > 0
-                          ? `${selectedLoad.destinations[0].city || ""}${selectedLoad.destinations[0].state ? `, ${selectedLoad.destinations[0].state}` : ""}`
-                          : selectedLoad.destination?.city || "-"}
-                      </TableCell>
-                      <TableCell>
-                        {selectedLoad.weight
-                          ? `${selectedLoad.weight} Kg`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{selectedLoad.commodity || "-"}</TableCell>
-                      <TableCell>{selectedLoad.vehicleType || "-"}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </Paper>
+  {selectedLoad && (
+    <Box component="form" onSubmit={handleBidSubmit}>
 
-              {/* Bid Form */}
-              <Box sx={{ mt: 3 }}>
-                {/* Row 1: Pickup ETA, Drop ETA, Bid Amount */}
-                <Grid container spacing={3} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Pickup ETA"
-                      name="pickupETA"
-                      type="datetime-local"
-                      value={bidForm.pickupETA}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      InputLabelProps={{ shrink: true }}
-                      error={!!bidErrors.pickupETA}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Drop ETA"
-                      name="dropETA"
-                      type="datetime-local"
-                      value={bidForm.dropETA}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      InputLabelProps={{ shrink: true }}
-                      error={!!bidErrors.dropETA}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Bid Amount"
-                      name="bidAmount"
-                      type="number"
-                      value={bidForm.bidAmount}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">$</InputAdornment>
-                        ),
-                      }}
-                      error={!!bidErrors.bidAmount}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
+      {/* Load Details - Styled like Image 1 */}
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 3,
+          mt:3,
+          borderRadius: 2,
+          border: "1px solid #e8f0fe",
+          overflow: "hidden",
+        }}
+      >
+        {/* Section Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            px: 2.5,
+            py: 1.5,
+            background: "#eef4fd",
+            borderBottom: "1px solid #e0eaf8",
+          }}
+        >
+          <Box
+            sx={{
+              width: 28,
+              height: 28,
+              borderRadius: 1,
+              bgcolor: "#1976d2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <LocalShippingIcon sx={{ color: "#fff", fontSize: 16 }} />
+          </Box>
+          <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "#1976d2" }}>
+            Load Information
+          </Typography>
+        </Box>
 
-                {/* Divider */}
-                <Box
-                  sx={{
-                    borderBottom: "2px solid #e0e0e0",
-                    mb: 3,
-                    mx: -2,
-                    opacity: 0.6,
-                  }}
-                />
+        {/* Info Rows */}
+       <Box sx={{ px: 3, py: 2, background: "#fff" }}>
+  {[
+    {
+      label: "Pickup",
+      value:
+        selectedLoad.origins?.length > 0
+          ? `${selectedLoad.origins[0].city || ""}${selectedLoad.origins[0].state ? `, ${selectedLoad.origins[0].state}` : ""}`
+          : selectedLoad.origin?.city || "-",
+    },
+    {
+      label: "Drop",
+      value:
+        selectedLoad.destinations?.length > 0
+          ? `${selectedLoad.destinations[0].city || ""}${selectedLoad.destinations[0].state ? `, ${selectedLoad.destinations[0].state}` : ""}`
+          : selectedLoad.destination?.city || "-",
+    },
+    {
+      label: "Weight",
+      value: selectedLoad.weight ? `${selectedLoad.weight} Kg` : "-",
+    },
+    { label: "Commodity", value: selectedLoad.commodity || "-" },
+    { label: "Vehicle Type", value: selectedLoad.vehicleType || "-" },
+  ].map((row, i) => (
+    <Box
+      key={i}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        py: 1.2,
+        borderBottom: i < 4 ? "1px solid #f0f4fa" : "none",
+      }}
+    >
+      <Typography
+        sx={{
+          fontWeight: 700,
+          fontSize: "0.82rem",
+          color: "black",
+          width: 110,
+          flexShrink: 0,
+          // textTransform: "uppercase",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {row.label}
+      </Typography>
+      <Typography sx={{ color: "#c8d0dc", fontSize: "0.75rem", mx: 1.5 }}>
+        ——
+      </Typography>
+      <Typography
+        sx={{
+          fontSize: "0.875rem",
+          fontWeight: 600,
+          color: "gray",
+        }}
+      >
+        {row.value}
+      </Typography>
+    </Box>
+  ))}
+</Box>
+      </Paper>
 
-                {/* Row 2: Driver Name, Vehicle Number, Vehicle Type */}
-                <Grid container spacing={3} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Driver Name"
-                      name="driverName"
-                      value={bidForm.driverName}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      error={!!bidErrors.driverName}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="Vehicle Number"
-                      name="vehicleNumber"
-                      value={bidForm.vehicleNumber}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      error={!!bidErrors.vehicleNumber}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="Vehicle Type"
-                      name="vehicleType"
-                      value={bidForm.vehicleType}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      required
-                      error={!!bidErrors.vehicleType}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
+      {/* Bid Form - Styled like Image 2 */}
+      <Box sx={{ mt: 1 }}>
 
-                {/* Divider */}
-                <Box
-                  sx={{
-                    borderBottom: "2px solid #e0e0e0",
-                    mb: 3,
-                    mx: -2,
-                    opacity: 0.6,
-                  }}
-                />
-
-                {/* Row 3: Message */}
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Message"
-                      name="message"
-                      value={bidForm.message || ""}
-                      onChange={handleBidFormChange}
-                      fullWidth
-                      multiline
-                      rows={2}
-                      placeholder="Write a message for the shipper..."
-                      error={!!bidErrors.message}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          backgroundColor: "#fafafa",
-                          "&:hover": {
-                            backgroundColor: "#f5f5f5",
-                          },
-                          "&.Mui-focused": {
-                            backgroundColor: "#fff",
-                          },
-                        },
-                        "& .MuiInputLabel-root": {
-                          fontWeight: 500,
-                          color: "#666",
-                        },
-                        "& .MuiInputBase-input": {
-                          padding: "16px 14px",
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
+        {/* Section 1: Timing & Amount */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 2.5,
+            borderRadius: 2,
+            border: "1px solid #e8f0fe",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              px: 2.5,
+              py: 1.5,
+              background: "#eef4fd", 
+              borderBottom: "1px solid #e8f0fe",
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                bgcolor: "#e3f0fd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AccessTimeIcon sx={{ color: "#1976d2", fontSize: 18 }} />
             </Box>
-          )}
-        </DialogContent>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", color: "#1976d2" }}>
+              Bid Details
+            </Typography>
+          </Box>
+          <Box sx={{ px: 2.5, py: 2.5 }}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Pickup ETA"
+                  name="pickupETA"
+                  type="datetime-local"
+                  value={bidForm.pickupETA}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  error={!!bidErrors.pickupETA}
+                  sx={fieldSx}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Drop ETA"
+                  name="dropETA"
+                  type="datetime-local"
+                  value={bidForm.dropETA}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  error={!!bidErrors.dropETA}
+                  sx={fieldSx}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Bid Amount"
+                  name="bidAmount"
+                  type="number"
+                  value={bidForm.bidAmount}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                  error={!!bidErrors.bidAmount}
+                  sx={fieldSx}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+
+        {/* Section 2: Driver & Vehicle */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 2.5,
+            borderRadius: 2,
+            border: "1px solid #e8f0fe",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              px: 2.5,
+              py: 1.5,
+              background: "#eef4fd",
+              borderBottom: "1px solid #e8f0fe",
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                bgcolor: "#e3f0fd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <PersonIcon sx={{ color: "#1976d2", fontSize: 18 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", color: "#1976d2" }}>
+              Driver & Vehicle
+            </Typography>
+          </Box>
+          <Box sx={{ px: 2.5, py: 2.5 }}>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Driver Name"
+                  name="driverName"
+                  value={bidForm.driverName}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  error={!!bidErrors.driverName}
+                  sx={fieldSx}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Vehicle Number"
+                  name="vehicleNumber"
+                  value={bidForm.vehicleNumber}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  error={!!bidErrors.vehicleNumber}
+                  sx={fieldSx}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Vehicle Type"
+                  name="vehicleType"
+                  value={bidForm.vehicleType}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  required
+                  error={!!bidErrors.vehicleType}
+                  sx={fieldSx}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+
+        {/* Section 3: Message */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            border: "1px solid #e8f0fe",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              px: 2.5,
+              py: 1.5,
+              background: "#eef4fd",
+              borderBottom: "1px solid #e8f0fe",
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                bgcolor: "#e3f0fd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MessageIcon sx={{ color: "#1976d2", fontSize: 18 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", color: "#1976d2" }}>
+              Message
+            </Typography>
+          </Box>
+          <Box sx={{ px: 2.5, py: 2.5 }}>
+            <Grid container>
+              <Grid item xs={12}>
+                <TextField
+                  label="Message"
+                  name="message"
+                  value={bidForm.message || ""}
+                  onChange={handleBidFormChange}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="Write a message for the shipper..."
+                  error={!!bidErrors.message}
+                  sx={fieldSx}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+
+      </Box>
+    </Box>
+  )}
+</DialogContent>
         <DialogActions
-          sx={{ p: 3, justifyContent: "center", gap: 2, background: "#fff" }}
+          sx={{ p: 3, justifyContent: "right", gap: 1, background: "#fff" }}
         >
           <Button
             onClick={handleCloseBidModal}

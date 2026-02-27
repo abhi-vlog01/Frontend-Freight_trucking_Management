@@ -4,6 +4,7 @@ import {
   Typography,
   Paper,
   Button,
+  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,6 +17,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Download, Edit } from "@mui/icons-material";
+import Close from "@mui/icons-material/Close";
 import axios from "axios";
 import { BASE_API_URL } from "../../apiConfig";
 import { useThemeConfig } from "../../context/ThemeContext";
@@ -103,6 +105,24 @@ const Dashboard = () => {
       ? themeConfig.header.bg
       : themeConfig.tokens?.primary || "#1976d2";
   const headerTextColor = themeConfig.header?.text || "#ffffff";
+  const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "10px",
+    backgroundColor: "#f4f6f9",
+    fontSize: "0.9rem",
+    "& fieldset": { borderColor: "#dde3ea" },
+    "&:hover fieldset": { borderColor: "#1976d2" },
+    "&.Mui-focused fieldset": { borderColor: "#1976d2" },
+    "&.Mui-focused": { backgroundColor: "#fff" },
+  },
+  "& .MuiInputLabel-root": {
+    fontSize: "1rem",
+    color: "gray",
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#1976d2",
+  },
+};
   const [editingDriver, setEditingDriver] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
@@ -686,440 +706,406 @@ const Dashboard = () => {
       <Dialog
         open={modalOpen}
         onClose={handleCloseModal}
-        maxWidth="sm"
+        maxWidth="lg"
         fullWidth
         PaperProps={{ sx: { boxShadow: "none" } }}
       >
-        <DialogTitle sx={{ textAlign: "left", pb: 0 }}>
-          <Typography
-            variant="h5"
-            fontWeight={700}
-            sx={{ textAlign: "left", color: "white" }}
-          >
-            Add Driver
-          </Typography>
-          <Divider
-            sx={{
-              mt: 1,
-              mb: 0.5,
-              width: "100%",
-              borderColor: "#e0e0e0",
-              borderBottomWidth: 2,
-              borderRadius: 2,
-            }}
-          />
-        </DialogTitle>
-        <DialogContent
+        <DialogTitle
           sx={{
-            pb: 4,
-            maxHeight: "70vh",
-            overflowY: "auto",
-            background: "#fff",
-            borderRadius: 0,
+            textAlign: "left",
+            pb: 2,
+            pt: 3,
+            background: brand,
+            color: headerTextColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, px: 2 }}>
-            <Grid
-              container
-              spacing={2}
-              sx={{ mb: 2, justifyContent: "center" }}
-            >
-              {/* Full Name | MC-DOT No */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Full Name"
-                  name="fullName"
-                  value={form.fullName || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.fullName}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="MC/DOT No"
-                  name="mcDot"
-                  value={form.mcDot || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.mcDot}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
+          <Typography variant="h5" fontWeight={700} color="white">
+            Add Driver
+          </Typography>
+          <IconButton aria-label="close" onClick={handleCloseModal} sx={{ color: "#ffffff" }}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+  sx={{
+    pb: 4,
+    pt: 3,
+    maxHeight: "70vh",
+    overflowY: "auto",
+    background: "#fafafa",
+  }}
+>
+  <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, px: 3 }}>
+    
+    {/* Personal Information */}
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        background: "white",
+        mb: 3,
+        border: "1px solid #e8edf2",
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 2.5,
+          color: "#1976d2",
+          fontWeight: 700,
+          fontSize: "1.2rem",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Box sx={{ width: 4, height: 22, background: "#1976d2", borderRadius: 1 }} />
+        Personal Information
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Full Name"
+            name="fullName"
+            value={form.fullName || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.fullName}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="MC/DOT No"
+            name="mcDot"
+            value={form.mcDot || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.mcDot}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Phone Number"
+            name="phone"
+            value={form.phone || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.phone}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Email Address"
+            name="email"
+            value={form.email || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.email}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Driver License No"
+            name="license"
+            value={form.license || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.license}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+  <TextField
+    select
+    label="Gender"
+    name="gender"
+    value={form.gender || ""}
+    onChange={handleFormChange}
+    fullWidth
+    error={!!errors.gender}
+    variant="outlined"
+    sx={{
+      ...fieldSx,
+      minWidth: 150,
+    }}
+  >
+    <MenuItem value="Male">Male</MenuItem>
+    <MenuItem value="Female">Female</MenuItem>
+    <MenuItem value="Other">Other</MenuItem>
+  </TextField>
+</Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            value={form.password || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.password}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+      </Grid>
+    </Paper>
 
-              {/* Phone | Email */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Phone"
-                  name="phone"
-                  value={form.phone || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.phone}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Email"
-                  name="email"
-                  value={form.email || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.email}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
+    {/* Address Information */}
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        background: "white",
+        mb: 3,
+        border: "1px solid #e8edf2",
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 2.5,
+          color: "#1976d2",
+          fontWeight: 700,
+          fontSize: "1.2rem",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Box sx={{ width: 4, height: 22, background: "#1976d2", borderRadius: 1 }} />
+        Address Information
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Country"
+            name="country"
+            value={form.country || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.country}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="State"
+            name="state"
+            value={form.state || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.state}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="City"
+            name="city"
+            value={form.city || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.city}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Zip Code"
+            name="zipCode"
+            value={form.zipCode || ""}
+            onChange={handleFormChange}
+            fullWidth
+            error={!!errors.zipCode}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={4}>
+          <TextField
+            label="Full Address"
+            name="address"
+            value={form.address || ""}
+            onChange={handleFormChange}
+            fullWidth
+            multiline
+            rows={3}
+            error={!!errors.address}
+            variant="outlined"
+            sx={fieldSx}
+          />
+        </Grid>
+      </Grid>
+    </Paper>
 
-              {/* License No | Gender */}
-              <Grid item xs={12} sm={8}>
-                <TextField
-                  label="License No"
-                  name="license"
-                  value={form.license || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.license}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  select
-                  label="Gender"
-                  name="gender"
-                  value={form.gender || ""}
-                  onChange={handleFormChange}
-                  error={!!errors.gender}
-                  sx={{
-                    width: "15.5rem",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                >
-                  <MenuItem value="Male">Male</MenuItem>
-                  <MenuItem value="Female">Female</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
-                </TextField>
-              </Grid>
-
-              {/* Country | State */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Country"
-                  name="country"
-                  value={form.country || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.country}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="State"
-                  name="state"
-                  value={form.state || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.state}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-
-              {/* City | Zip Code */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="City"
-                  name="city"
-                  value={form.city || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.city}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Zip Code"
-                  name="zipCode"
-                  value={form.zipCode || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.zipCode}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-
-              {/* Address | Password */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Address"
-                  name="address"
-                  value={form.address || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  error={!!errors.address}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Password"
-                  name="password"
-                  value={form.password || ""}
-                  onChange={handleFormChange}
-                  fullWidth
-                  type="password"
-                  error={!!errors.password}
-                  sx={{
-                    minWidth: "100%",
-                    "& .MuiInputBase-root": {
-                      borderRadius: "12px",
-                      paddingRight: 3,
-                    },
-                  }}
-                />
-              </Grid>
-
-              {/* Upload Photo | Upload CDL */}
-              <Grid item xs={12} sm={6}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{
-                    borderRadius: "12px",
-                    minHeight: "56px",
-                    fontWeight: 500,
-                    justifyContent: "flex-start",
-                    textTransform: "none",
-                    background: "#fff",
-                    borderColor: "#c4c4c4",
-                    color: "#333",
-                    fontSize: "16px",
-                    boxShadow: "none",
-                    px: 2,
-                    "&:hover": {
-                      background: "#f5f5f5",
-                      borderColor: "#1976d2",
-                    },
-                  }}
-                >
-                  <span
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="#1976d2"
-                      style={{ marginRight: 8 }}
-                    >
-                      <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM5 5h14v14H5V5zm7 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-5 9.5V17h10v-.5l-3.5-4.5-2.5 3-1.5-2z" />
-                    </svg>
-                    {photo
-                      ? typeof photo === "string"
-                        ? photo
-                        : photo.name
-                      : "Upload Photo"}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    name="photo"
-                    onChange={handleFormChange}
-                  />
-                </Button>
-                {photoPreview && (
-                  <Box mt={1} display="flex" justifyContent="flex-start">
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      height={60}
-                      style={{
-                        borderRadius: 8,
-                        maxWidth: "200px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </Box>
-                )}
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{
-                    borderRadius: "12px",
-                    minHeight: "56px",
-                    fontWeight: 500,
-                    justifyContent: "flex-start",
-                    textTransform: "none",
-                    background: "#fff",
-                    borderColor: "#c4c4c4",
-                    color: "#333",
-                    fontSize: "16px",
-                    boxShadow: "none",
-                    px: 2,
-                    "&:hover": {
-                      background: "#f5f5f5",
-                      borderColor: "#1976d2",
-                    },
-                  }}
-                >
-                  <span
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      fill="#1976d2"
-                      style={{ marginRight: 8 }}
-                    >
-                      <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM5 5h14v14H5V5zm7 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-5 9.5V17h10v-.5l-3.5-4.5-2.5 3-1.5-2z" />
-                    </svg>
-                    {form.cdl
-                      ? typeof form.cdl === "string"
-                        ? form.cdl
-                        : form.cdl.name
-                      : "Upload CDL"}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    hidden
-                    name="cdl"
-                    onChange={handleFormChange}
-                  />
-                </Button>
-                {cdlPreview ? (
-                  <Box mt={1} display="flex" justifyContent="flex-start">
-                    <img
-                      src={cdlPreview}
-                      alt="CDL Preview"
-                      height={60}
-                      style={{
-                        borderRadius: 8,
-                        maxWidth: "200px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </Box>
-                ) : form.cdl ? (
-                  <Box mt={1} display="flex" justifyContent="flex-start">
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: "#1976d2",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {typeof form.cdl === "string"
-                        ? form.cdl
-                        : form.cdl.name || "File Selected"}
-                    </span>
-                  </Box>
-                ) : null}
-              </Grid>
-            </Grid>
-            <DialogActions sx={{ mt: 4, justifyContent: "center", gap: 1 }}>
-              <Button
-                onClick={handleCloseModal}
-                variant="outlined"
-                sx={{
-                  borderRadius: 3,
-                  backgroundColor: "#ffff",
-                  color: "#d32f2f",
-                  textTransform: "none",
-                  px: 4,
-                  borderColor: "#d32f2f",
-                  "&:hover": {
-                background: "red",
-                color: "white",
+    {/* Uploads */}
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        background: "white",
+        mb: 3,
+        border: "1px solid #e8edf2",
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 2.5,
+          color: "#1976d2",
+          fontWeight: 700,
+          fontSize: "1.2rem",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Box sx={{ width: 4, height: 22, background: "#1976d2", borderRadius: 1 }} />
+        Uploads
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <Button
+            variant="outlined"
+            component="label"
+            fullWidth
+            sx={{
+              borderRadius: "10px",
+              minHeight: "52px",
+              fontWeight: 500,
+              justifyContent: "flex-start",
+              textTransform: "none",
+              background: "#f8fafc",
+              borderColor: "#dde3ea",
+              color: "#444",
+              fontSize: "0.875rem",
+              px: 2,
+              "&:hover": {
+                background: "#f0f4f8",
+                borderColor: "#1976d2",
               },
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                sx={{ borderRadius: 3, textTransform: "none", px: 4, color: "white", "&:hover": {
-                background: "#0a3e72ff",
-                color: "white",
-              }, }}
-              >
-                Submit
-              </Button>
-            </DialogActions>
-          </Box>
-        </DialogContent>
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="20" height="20" fill="#1976d2">
+                <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM5 5h14v14H5V5zm7 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-5 9.5V17h10v-.5l-3.5-4.5-2.5 3-1.5-2z" />
+              </svg>
+              {photo ? (typeof photo === "string" ? photo : photo.name) : "Upload Photo"}
+            </span>
+            <input type="file" accept="image/*" hidden name="photo" onChange={handleFormChange} />
+          </Button>
+          {photoPreview && (
+            <Box mt={1}>
+              <img src={photoPreview} alt="Preview" height={60} style={{ borderRadius: 8, maxWidth: "200px", objectFit: "cover" }} />
+            </Box>
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Button
+            variant="outlined"
+            component="label"
+            fullWidth
+            sx={{
+              borderRadius: "10px",
+              minHeight: "52px",
+              fontWeight: 500,
+              justifyContent: "flex-start",
+              textTransform: "none",
+              background: "#f8fafc",
+              borderColor: "#dde3ea",
+              color: "#444",
+              fontSize: "0.875rem",
+              px: 2,
+              "&:hover": {
+                background: "#f0f4f8",
+                borderColor: "#1976d2",
+              },
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="20" height="20" fill="#1976d2">
+                <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM5 5h14v14H5V5zm7 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-5 9.5V17h10v-.5l-3.5-4.5-2.5 3-1.5-2z" />
+              </svg>
+              {form.cdl ? (typeof form.cdl === "string" ? form.cdl : form.cdl.name) : "Upload CDL"}
+            </span>
+            <input type="file" accept="image/*,application/pdf" hidden name="cdl" onChange={handleFormChange} />
+          </Button>
+          {cdlPreview ? (
+            <Box mt={1}>
+              <img src={cdlPreview} alt="CDL Preview" height={60} style={{ borderRadius: 8, maxWidth: "200px", objectFit: "cover" }} />
+            </Box>
+          ) : form.cdl ? (
+            <Box mt={1}>
+              <span style={{ fontSize: 13, color: "#1976d2", fontWeight: 500 }}>
+                {typeof form.cdl === "string" ? form.cdl : form.cdl.name || "File Selected"}
+              </span>
+            </Box>
+          ) : null}
+        </Grid>
+      </Grid>
+    </Paper>
+
+    <DialogActions sx={{ mt: 2, justifyContent: "flex-end", gap: 1, px: 0 }}>
+      <Button
+        onClick={handleCloseModal}
+        variant="outlined"
+        size="large"
+        sx={{
+          borderRadius: 3,
+          textTransform: "none",
+          px: 4,
+          py: 1.2,
+          fontWeight: 600,
+          backgroundColor: "transparent",
+          color: "#d32f2f",
+          borderColor: "#d32f2f",
+          "&:hover": {
+            backgroundColor: "#d32f2f",
+            borderColor: "#d32f2f",
+            color: "white",
+          },
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        variant="contained"
+        size="large"
+        sx={{
+          borderRadius: 3,
+          textTransform: "none",
+          px: 4,
+          py: 1.2,
+          fontWeight: 600,
+          color: "white",
+          "&:hover": { filter: "brightness(1.15)" },
+        }}
+      >
+        Submit
+      </Button>
+    </DialogActions>
+  </Box>
+</DialogContent>
       </Dialog>
 
       {/* Edit Driver Modal */}
